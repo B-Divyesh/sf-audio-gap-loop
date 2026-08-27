@@ -1,0 +1,15 @@
+{
+  "slug": "audio-gap-loop",
+  "title": "Audio Gap Loop",
+  "territory": "utilities",
+  "user": "A language learner or parent helping a child who needs repeatable listen-say-check practice from short audio without addictive gamification.",
+  "smallest_useful_product": "A browser-only audio practice player: import personally owned clips, mark a transcript line, set listen/pause/repeat cadence, and keep a local completion log.",
+  "non_goals": [
+    "Speech scoring",
+    "A licensed media catalog",
+    "Child data collection"
+  ],
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "constraints": "Users must supply material they may use; preserve all audio locally; include hearing-safe volume guidance and accessible transcript controls."
+}

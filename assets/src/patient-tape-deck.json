@@ -1,0 +1,11 @@
+{
+  "asset": "patient-tape-deck.png",
+  "date": "2026-08-27",
+  "generator": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "size": "1536x1024",
+  "quality": "high",
+  "use_case": "stylized-concept",
+  "prompt": "Use case: stylized-concept. Asset type: responsive landing-page hero illustration for an offline language audio utility. Scene/backdrop: overhead cassette-era study desk assembled as a screen-printed zine collage on warm fibrous cream paper. Subject: one generic unbranded compact cassette partly inserted into a simple portable tape recorder, modest over-ear headphones, a torn completely blank transcript strip, and three abstract timing blocks that visually suggest listen, pause, repeat. Style/medium: tactile 1980s risograph and cut-paper editorial collage, coarse halftone, imperfect two-pass ink registration, crisp intentional silhouettes. Composition/framing: wide landscape with the main tape deck centered, generous calm negative space at the edges, readable at small mobile crop. Lighting/mood: flat printed light, patient, studious, non-addictive. Color palette: soot black, faded cream paper, signal orange, muted teal, small safety-yellow accents. Materials/textures: ink grain, scuffed plastic, paper fibers, magnetic tape. Constraints: original generic objects only; no people; absolutely no written words, letters, numbers, labels, logos, trademarks, recognizable brand shapes, watermarks, UI screenshots, gradients, glossy 3D, neon, trophies, coins, mascots, confetti, or gamification symbols.",
+  "review": "Accepted: no people, text, logos, brand marks, anatomical issues, visible seams, or misleading UI. The blank transcript strip and three abstract transport marks communicate the practice cadence without claims."
+}
