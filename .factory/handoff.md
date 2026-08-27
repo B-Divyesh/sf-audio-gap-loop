@@ -1,4 +1,26 @@
-# Audio Gap Loop — build handoff
+# Audio Gap Loop — verification handoff
+
+## Independent verifier result — **FAIL**
+
+Verified candidate: `67ba716f65d8c2cb2d8439cff033c09599be3755`
+Target: `https://audio-gap-loop.sociobot.in`
+Verified: 2026-08-27 23:24 UTC
+
+The source candidate passes a clean install, its full unit/E2E suite, exact production build, and independent local browser/PWA/accessibility/privacy QA. It **must not be released** because the live target fails normal HTTPS with `ERR_CERT_COMMON_NAME_INVALID`; bypassing certificate validation returns Azure `404 Site Not Found` for both `/` and the PWA assets. An earlier transient candidate HTML response referenced JS/CSS/SW/manifest resources that also returned Azure 404 pages, so it was not usable either.
+
+Release-blocking defects:
+
+1. **P0 — Invalid TLS certificate.** The certificate SAN does not contain `audio-gap-loop.sociobot.in`.
+2. **P0 — Static deployment/routing absent or misbound.** Repeated diagnostics returned HTTP 404 Azure pages for root and candidate assets.
+3. **P2 — Deployment hardening.** The briefly observed candidate shell lacked CSP and Permissions-Policy headers; add them when repairing host configuration.
+
+Exact commands/results: `npm ci` PASS (0 audit vulnerabilities); `npm test` PASS after installing the missing worker Chromium runtime (3 Vitest + 2 Playwright); `npm run build` PASS (`dist/`, 9.63 kB gzip JS, 4.43 kB gzip CSS). Local QA covered real WAV import, rights validation, invalid file/backup recovery, 1–30 repetition bounds, transcript selection, persistence, completion log, backup download, 390 px layout, keyboard/dialog/focus, reduced motion, 0 axe serious/critical findings, local-only free-flow requests, service-worker offline shell, and update toast.
+
+See `.factory/verification.md` for full evidence and rerun criteria. No product code was modified by verification.
+
+---
+
+# Original builder handoff
 
 Work order: `audio-gap-loop-build-1`
 Completed: 2026-08-27
