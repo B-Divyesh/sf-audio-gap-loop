@@ -48,6 +48,8 @@ test('imports a real clip, persists it, and stays usable offline', async ({ page
   await expect(page.getByRole('button', { name: 'Bonjour !' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'À demain.' }).click();
   await expect(page.getByRole('button', { name: 'À demain.' })).toHaveAttribute('aria-pressed', 'true');
+  const playerAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(playerAccessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
 
   await page.reload();
   await expect(page.locator('.player-shell').getByRole('heading', { name: 'bonjour' })).toBeVisible();
