@@ -70,3 +70,23 @@ test('phone layout exposes primary controls without horizontal overflow', async 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+async function expectTouchTargets(page: import('@playwright/test').Page, selector: string): Promise<void> {
+  const dimensions = await page.locator(selector).evaluateAll((elements) => elements.map((element) => {
+    const { width, height } = element.getBoundingClientRect();
+    return { label: element.textContent?.trim(), width, height };
+  }));
+  for (const target of dimensions) {
+    expect(target.width, `${target.label} must be at least 44 CSS pixels wide`).toBeGreaterThanOrEqual(44);
+    expect(target.height, `${target.label} must be at least 44 CSS pixels tall`).toBeGreaterThanOrEqual(44);
+  }
+}
+
+test('navigation and footer links keep 44px targets on desktop and mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expectTouchTargets(page, '.brand, nav a, footer a');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectTouchTargets(page, '.brand, footer a');
+});

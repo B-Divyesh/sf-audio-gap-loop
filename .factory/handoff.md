@@ -1,5 +1,30 @@
 # Audio Gap Loop — verification handoff
 
+## Repair work order — 2026-08-28
+
+Repair scope: verifier report `.factory/verification-2.md`, candidate `67ba716f65d8c2cb2d8439cff033c09599be3755`.
+
+### Repairs included
+
+- Added `public/staticwebapp.config.json`, copied to `dist/` at build time for the static Azure deployment. Fingerprinted `/assets/*` receive `Cache-Control: public, max-age=31536000, immutable`; the service worker is no-store and the manifest/offline shell revalidate. The config also sets a same-origin CSP with only the required Sociobot billing hosts, Permissions-Policy, `DENY` framing, nosniff, referrer policy, and the web manifest MIME type.
+- Raised the app brand, desktop navigation, and all footer-link hit areas to at least 44 × 44 CSS px without changing the cassette-zine visual system. Legal-page navigation/footer links receive the same minimum target treatment.
+- Pinned Playwright, its core override, and axe-playwright to the supplied compatible `1.58.2` / `4.10.2` versions. A clean `npm ci && npm test` no longer needs a browser download or resolves an incompatible transitive browser runtime.
+- Added exact regression coverage: `src/deployment.test.ts` asserts immutable/revalidated cache policy plus hardening/MIME configuration, and the Playwright suite measures all reported brand/navigation/footer targets at desktop and 390px.
+
+### Verification evidence
+
+- `npm ci` — PASS, 0 audit vulnerabilities.
+- `npm test` — PASS: 5 Vitest tests and 3 Playwright tests. This includes real WAV import/persistence, offline reload, axe serious/critical scans, 390px overflow, and the new target-size assertions.
+- `npm run build` — PASS. `dist/` contains `index.html`, legal pages, PWA files, and `staticwebapp.config.json`; built main JS is 28.33 kB (9.63 kB gzip) and main CSS is 16.65 kB (4.44 kB gzip).
+- `git diff --check` and `npm audit --audit-level=high` — PASS.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ …` against the production preview — PASS: HTTP 200, 574 ms, zero browser errors, title/lang, one h1, main landmark, image alts, and button names all present.
+
+### External factory action still required
+
+The paid-flow source is intentionally preserved because the researched brief requires a one-time Studio unlock. On 2026-08-28, the live checkout URL `https://api.sociobot.in/api/v1/products/audio-gap-loop/checkout` still returns HTTP 404 with `{"error":"enabled factory product","status":404}`. This is a Sociobot billing-product registration issue, not a repository defect; product rules forbid this repo from changing billing. The factory must enable/register `audio-gap-loop`, then run a real checkout/return-token/restore/revocation test. The repair deployment should be checked after publish for the immutable `/assets/*` header and new response policies.
+
+---
+
 ## Independent verifier result — **FAIL**
 
 Verified candidate: `67ba716f65d8c2cb2d8439cff033c09599be3755`

@@ -76,7 +76,7 @@ The product slug is `audio-gap-loop`; no billing product ID or secret is stored 
 
 ## Deployment
 
-Deploy the contents of `dist/` as a static site. Configure clean directory paths so `/privacy/` and `/terms/` resolve to their generated `index.html` files. Do not deploy source `.env` files or modify DNS/billing from this repository.
+Deploy the contents of `dist/` as a static site. Configure clean directory paths so `/privacy/` and `/terms/` resolve to their generated `index.html` files. The generated `staticwebapp.config.json` is part of the artifact: it caches fingerprinted `/assets/*` for one year with `immutable`, keeps the worker and shell revalidated, declares the manifest MIME type, and applies the CSP, permissions, and frame protections. Do not deploy source `.env` files or modify DNS/billing from this repository.
 
 ## License
 
