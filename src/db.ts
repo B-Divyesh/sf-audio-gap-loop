@@ -1,11 +1,16 @@
 import type { Clip, PracticeLog } from './models';
 
-const DB_NAME = 'audio-gap-loop';
+let databaseName = 'audio-gap-loop';
 const DB_VERSION = 1;
+
+/** Demo data deliberately lives in a different IndexedDB database. */
+export function setDatabaseName(name: string): void {
+  databaseName = name;
+}
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(databaseName, DB_VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains('clips')) {
@@ -94,6 +99,15 @@ export async function importRecords(clips: Clip[], logs: PracticeLog[]): Promise
   const transaction = database.transaction(['clips', 'logs'], 'readwrite');
   clips.forEach((clip) => transaction.objectStore('clips').put(clip));
   logs.forEach((log) => transaction.objectStore('logs').put(log));
+  await transactionDone(transaction);
+  database.close();
+}
+
+export async function clearRecords(): Promise<void> {
+  const database = await openDatabase();
+  const transaction = database.transaction(['clips', 'logs'], 'readwrite');
+  transaction.objectStore('clips').clear();
+  transaction.objectStore('logs').clear();
   await transactionDone(transaction);
   database.close();
 }

@@ -1,88 +1,42 @@
 # Audio Gap Loop
 
-Audio Gap Loop is a calm, browser-only listen–say–check player for short audio you own. It is for language learners, parents, and tutors who want precise repetition timing without scores, streaks, speech grading, or an account.
+Practise a language clip in timed repeats. It is for learners, parents, and tutors who want a quiet listen–speak–repeat routine.
 
-Live product: <https://audio-gap-loop.sociobot.in>
+Try the prepared sample at [audio-gap-loop.sociobot.in/demo/](https://audio-gap-loop.sociobot.in/demo/). The demo is separate from your own browser data and includes a reset control.
 
-## What it does
+## Use it
 
-- Imports MP3, M4A, WAV, OGG, Opus, and WebM clips up to 100 MB.
-- Keeps audio, transcripts, cadence settings, and completion logs in IndexedDB on the current device.
-- Plays a clip, waits for a configurable silent speaking gap, and repeats it 1–30 times at 0.6×–1.25× speed.
-- Lets the learner mark one transcript phrase to keep in view.
-- Logs completed sessions locally and exports a CSV log or complete JSON backup, including audio.
-- Installs as a PWA and reloads saved clips offline.
-- Includes hearing-safe volume guidance and keyboard controls.
+Import audio you have permission to use. Add transcript lines. Select one line. Set the silent gap and repetitions. Export a CSV log or JSON backup when needed.
 
-Studio is an optional $9 one-time license unlock for reusable cadence presets and an ordered practice queue. The core player, unlimited clips, safety features, and data export are free. Checkout and license verification use the Sociobot billing API; no payment provider is embedded here. Public purchase links stay unavailable until the factory enables the product in that billing service, so a release never sends someone to an unavailable checkout.
+The player keeps imported material in browser storage. Export a backup before clearing site data. The demo can reload offline after its first visit. The claims and their browser proofs are listed in [.factory/claims.json](.factory/claims.json).
 
-## Run locally
+## Run and verify
 
 Requires Node.js 20 or newer.
 
 ```sh
-npm install
-npx playwright install chromium
-npm run dev
-```
-
-Open the URL printed by Vite. No account, API key, or backend is needed for the core product.
-
-## Test and build
-
-```sh
+npm ci
 npm test
 npm run build
 npm run preview
 ```
 
-`npm test` runs Vitest unit tests and Playwright end-to-end checks, including an axe accessibility scan, 390 px layout check, real WAV import, IndexedDB persistence, and `context.setOffline(true)` reload. The exact production build command is `npm run build`; output is written to `dist/` with `dist/index.html` at its root.
+`npm run build` creates `dist/`. The static deploy serves that directory. The PWA service worker caches the shell for offline reloads.
 
-## Keyboard controls
+## Routes
 
-When focus is not inside a form control:
+- `/` — player and import flow
+- `/demo/` or `?demo=1` — isolated sample loop
+- `/privacy/` and `/terms/` — legal information
+- `/404.html` — recovery page
 
-- `Space`: start or pause the cadence
-- `R`: replay from the beginning
-- `Left Arrow` / `Right Arrow`: seek five seconds
-- `Escape`: close the clip dialog (native dialog behavior)
+## Project files
 
-Every action is also available through labelled buttons and standard form controls.
-
-## Storage and privacy
-
-Audio never leaves the browser. IndexedDB stores clips and logs; localStorage stores the selected clip, Studio presets/queue, and any license token. The only optional network request containing user data is a Studio license verification request. See the in-product [privacy policy](https://audio-gap-loop.sociobot.in/privacy/) and [terms](https://audio-gap-loop.sociobot.in/terms/).
-
-Clearing site storage deletes local material. Use **Export backup** first if it matters. Backup imports use last-write-wins based on each clip’s `updatedAt` value; practice log entries merge by ID.
-
-## Configuration
-
-Production defaults to `https://api.sociobot.in/api/v1`. A factory staging build can override the billing host without changing code:
-
-```sh
-VITE_BILLING_BASE=https://pilot-api.sociobot.in/api/v1 npm run build
-```
-
-After the factory registers and tests checkout for this slug, it must explicitly enable the public purchase CTA in the release build:
-
-```sh
-VITE_STUDIO_SALES_ENABLED=true npm run build
-```
-
-The product slug is `audio-gap-loop`; no billing product ID or secret is stored in this repository.
-
-## Project map
-
-- `src/main.ts` — interface, player state machine, import/export, Studio extras
-- `src/db.ts` — IndexedDB clips and practice logs
-- `src/license.ts` — checkout return, cached verification, restore flow
-- `public/sw.js` — versioned app-shell cache and connectivity probe
-- `.factory/design.md` — product-specific visual system and image provenance
-- `assets/src/` — original generated art and authored icon source
-
-## Deployment
-
-Deploy the contents of `dist/` as a static site. Configure clean directory paths so `/privacy/` and `/terms/` resolve to their generated `index.html` files. The generated `staticwebapp.config.json` is part of the artifact: it caches fingerprinted `/assets/*` for one year with `immutable`, keeps the worker and shell revalidated, declares the manifest MIME type, and applies the CSP, permissions, and frame protections. Do not deploy source `.env` files or modify DNS/billing from this repository.
+- `src/main.ts` — player and demo behaviour
+- `src/db.ts` — browser database access
+- `public/sw.js` — offline cache
+- `.factory/demo.md` — demo namespace and reset details
+- `.factory/design.md` — visual system and asset provenance
 
 ## License
 

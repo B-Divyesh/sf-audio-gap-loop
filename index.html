@@ -1,136 +1,23 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f4e9ce" />
-    <meta name="description" content="Bring your own audio. Listen, pause to speak, and repeat at your pace—privately and offline." />
-    <meta property="og:title" content="Audio Gap Loop" />
-    <meta property="og:description" content="A calm, local-first listen–say–check player for your own audio." />
-    <meta property="og:image" content="/assets/patient-tape-deck-1200.webp" />
-    <title>Audio Gap Loop — Listen. Say it. Check.</title>
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icon-192.png" />
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to practice</a>
-    <header class="site-header">
-      <a class="brand" href="/" aria-label="Audio Gap Loop home"><span aria-hidden="true">A/G</span> Audio Gap Loop</a>
-      <nav aria-label="Main navigation">
-        <a href="#workbench">Workbench</a>
-        <a href="#method">Method</a>
-        <a href="#studio">Studio</a>
-      </nav>
-    </header>
-    <main id="main">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow">Your audio · your pace · stays here</p>
-          <h1 id="hero-title"><span>Listen.</span> Say it. Check.</h1>
-          <p class="lede">A patient practice loop for language clips you own. It plays the line, leaves you room to speak, then comes back—without scores, streaks, or a cloud account.</p>
-          <div class="hero-actions">
-            <button class="button button-primary" type="button" data-action="open-import">Add your first clip</button>
-            <a class="text-link" href="#method">See the three-step rhythm</a>
-          </div>
-          <p class="local-note"><span aria-hidden="true">●</span> Audio is stored only in this browser.</p>
-        </div>
-        <figure class="hero-art">
-          <picture>
-            <source type="image/avif" srcset="/assets/patient-tape-deck-720.avif 720w, /assets/patient-tape-deck-1200.avif 1200w" sizes="(max-width: 760px) 100vw, 50vw" />
-            <source type="image/webp" srcset="/assets/patient-tape-deck-720.webp 720w, /assets/patient-tape-deck-1200.webp 1200w" sizes="(max-width: 760px) 100vw, 50vw" />
-            <img src="/assets/patient-tape-deck-720.webp" width="720" height="480" fetchpriority="high" decoding="async" alt="Printed collage of a cassette recorder, headphones, and three playback marks." />
-          </picture>
-          <figcaption>Bring the sound. Keep the silence.</figcaption>
-        </figure>
-      </section>
-
-      <section class="workbench" id="workbench" aria-labelledby="workbench-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">The workbench</p>
-            <h2 id="workbench-title">Your practice tapes</h2>
-          </div>
-          <button class="button button-dark" type="button" data-action="open-import">+ Add audio</button>
-        </div>
-        <div id="offline-banner" class="notice notice-yellow" role="status" hidden>Offline. Your saved clips and practice tools still work.</div>
-        <div id="app-status" class="sr-only" aria-live="polite"></div>
-        <div id="workbench-app" aria-busy="true">
-          <div class="loading-state"><span class="loader" aria-hidden="true"></span> Opening your tape box…</div>
-        </div>
-      </section>
-
-      <section class="method" id="method" aria-labelledby="method-title">
-        <div>
-          <p class="eyebrow">No game layer</p>
-          <h2 id="method-title">One useful rhythm</h2>
-          <p>Choose a short line. Hear it at a comfortable speed. Use the quiet gap to say it yourself. Hear it again while the sound is still fresh.</p>
-        </div>
-        <ol class="rhythm" aria-label="Practice rhythm">
-          <li><span>01</span><strong>Listen</strong><small>Your clip plays once.</small></li>
-          <li><span>02</span><strong>Your turn</strong><small>A silent gap gives you room.</small></li>
-          <li><span>03</span><strong>Repeat</strong><small>The clip returns on cue.</small></li>
-        </ol>
-      </section>
-
-      <section class="studio" id="studio" aria-labelledby="studio-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Optional one-time unlock</p>
-            <h2 id="studio-title">Studio extras</h2>
-          </div>
-          <p class="price">$9 <span>once</span></p>
-        </div>
-        <div id="studio-app"></div>
-      </section>
-
-      <section class="data-tools" aria-labelledby="data-title">
-        <div>
-          <p class="eyebrow">Your shelf, your data</p>
-          <h2 id="data-title">Take everything with you</h2>
-          <p>Export a complete JSON backup including your audio, or a compact CSV practice log. Imports merge with what is already here.</p>
-        </div>
-        <div class="tool-actions">
-          <button class="button button-outline" type="button" data-action="export-json">Export backup</button>
-          <button class="button button-outline" type="button" data-action="export-csv">Export log CSV</button>
-          <button class="button button-outline" type="button" data-action="import-json">Import backup</button>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <p><strong>Audio Gap Loop</strong> is a quiet tool, not a course or pronunciation judge.</p>
-      <p><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="mailto:hello@sociobot.in">Help</a></p>
-      <p class="generated-note">The cassette collage was generated for this product with the factory image model. No stock assets or user audio are sent with it.</p>
-    </footer>
-
-    <input id="audio-file" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.webm" hidden />
-    <input id="backup-file" type="file" accept="application/json,.json" hidden />
-
-    <dialog id="clip-dialog" aria-labelledby="clip-dialog-title">
-      <form method="dialog" id="clip-form">
-        <div class="dialog-head">
-          <div>
-            <p class="eyebrow">Label the tape</p>
-            <h2 id="clip-dialog-title">Add a practice clip</h2>
-          </div>
-          <button class="icon-button" type="button" data-action="close-dialog" aria-label="Close dialog">×</button>
-        </div>
-        <p id="selected-file" class="file-chip"></p>
-        <label for="clip-title">Clip title</label>
-        <input id="clip-title" name="title" autocomplete="off" maxlength="80" required />
-        <label for="clip-transcript">Transcript <span>(one phrase per line)</span></label>
-        <textarea id="clip-transcript" name="transcript" rows="5" maxlength="5000" aria-describedby="transcript-help"></textarea>
-        <p class="field-help" id="transcript-help">During practice, choose the line you want to keep in view.</p>
-        <label class="check-row"><input id="rights-check" type="checkbox" required /> <span>I have permission to use this audio.</span></label>
-        <div id="clip-error" class="form-error" role="alert"></div>
-        <div class="dialog-actions">
-          <button class="button button-outline" type="button" data-action="close-dialog">Cancel</button>
-          <button class="button button-primary" type="submit" value="default">Save clip locally</button>
-        </div>
-      </form>
-    </dialog>
-
-    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f4e9ce">
+  <meta name="description" content="Practise language clips with a timed listen, speaking gap, and repeat routine.">
+  <link rel="canonical" href="https://audio-gap-loop.sociobot.in/"><meta property="og:type" content="website"><meta property="og:url" content="https://audio-gap-loop.sociobot.in/"><meta property="og:title" content="Audio Gap Loop — Timed language practice"><meta property="og:description" content="Practise language clips with a timed listen, speaking gap, and repeat routine."><meta property="og:image" content="https://audio-gap-loop.sociobot.in/assets/social-tape-deck-1200x630.webp"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Audio Gap Loop — Timed language practice"><meta name="twitter:description" content="Practise language clips with a timed listen, speaking gap, and repeat routine."><meta name="twitter:image" content="https://audio-gap-loop.sociobot.in/assets/social-tape-deck-1200x630.webp">
+  <title>Audio Gap Loop — Timed language practice</title><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to practice</a>
+<header class="site-header"><a class="brand" href="/" aria-label="Audio Gap Loop home"><span aria-hidden="true">A/G</span> Audio Gap Loop</a><nav aria-label="Main navigation"><a href="/demo/">Demo</a><a href="#how-it-works">How it works</a><a href="/privacy/">Privacy</a></nav></header>
+<div id="demo-banner" class="demo-banner" hidden><strong>Demo — sample data, nothing is saved.</strong><span><button type="button" data-action="reset-demo">Reset demo</button><button type="button" data-action="start-real">Start for real</button></span></div>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title"><div class="hero-copy"><p class="eyebrow">Timed speaking practice</p><h1 id="hero-title"><span>Practise a language clip</span> in timed repeats</h1><p class="lede">For language learners, parents, and tutors who want a quiet listen–speak–repeat routine.</p><div class="hero-actions"><a class="button button-primary" href="/demo/">Try a sample practice loop</a><span class="action-note">Opens a prepared dialogue with a selected line and a 3-second speaking gap.</span></div><ul class="plain-facts"><li>Sample data stays separate from your clips.</li><li>Bring audio you have permission to use.</li><li>Export a backup before clearing browser data.</li></ul></div><figure class="hero-art"><picture><source type="image/avif" srcset="/assets/patient-tape-deck-720.avif 720w, /assets/patient-tape-deck-1200.avif 1200w" sizes="(max-width: 760px) 100vw, 50vw"><source type="image/webp" srcset="/assets/patient-tape-deck-720.webp 720w, /assets/patient-tape-deck-1200.webp 1200w" sizes="(max-width: 760px) 100vw, 50vw"><img src="/assets/patient-tape-deck-720.webp" width="720" height="480" fetchpriority="high" decoding="async" alt="Cassette recorder and headphones beside a blank transcript strip."></picture><figcaption>Listen · speak · repeat</figcaption></figure></section>
+<section class="workbench" id="workbench" aria-labelledby="workbench-title"><div class="section-heading"><div><p class="eyebrow">Practice player</p><h2 id="workbench-title">Your audio clips</h2></div><button class="button button-dark" type="button" data-action="open-import">Import audio file</button></div><div id="offline-banner" class="notice notice-yellow" role="status" hidden>Offline. Your saved clips and practice tools still work.</div><div id="app-status" class="sr-only" aria-live="polite"></div><div id="workbench-app" aria-busy="true"><div class="loading-state"><span class="loader" aria-hidden="true"></span>Opening practice player…</div></div></section>
+<section class="method" id="how-it-works" aria-labelledby="method-title"><div><p class="eyebrow">How it works</p><h2 id="method-title">How timed repeats work</h2><p>Choose a transcript line. Hear the clip. Speak in the gap. Hear it again.</p></div><ol class="rhythm" aria-label="Practice rhythm"><li><span>01</span><strong>Listen</strong><small>Play the selected clip.</small></li><li><span>02</span><strong>Speak</strong><small>Use the chosen silent gap.</small></li><li><span>03</span><strong>Repeat</strong><small>Play the clip again.</small></li></ol></section>
+<section class="studio" id="studio" aria-labelledby="studio-title"><div class="section-heading"><div><p class="eyebrow">Optional tools</p><h2 id="studio-title">Studio extras</h2></div></div><div id="studio-app"></div></section>
+<section class="data-tools" aria-labelledby="data-title"><div><p class="eyebrow">Export and import</p><h2 id="data-title">Export your practice data</h2><p>Download a backup with your clips or a CSV practice log.</p></div><div class="tool-actions"><button class="button button-outline" type="button" data-action="export-json">Export backup</button><button class="button button-outline" type="button" data-action="export-csv">Export log CSV</button><button class="button button-outline" type="button" data-action="import-json">Import backup</button></div></section>
+</main>
+<footer><p><strong>Audio Gap Loop</strong> helps you practise a clip without speech scoring.</p><p><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="mailto:hello@sociobot.in">Help</a></p><p class="generated-note">Cassette artwork was generated for this product. User audio is not sent with it.</p><p class="build-id">Build f0e7e9a-polish-1 · Built by Param Factory</p></footer>
+<input id="audio-file" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.webm" hidden><input id="backup-file" type="file" accept="application/json,.json" hidden>
+<dialog id="clip-dialog" aria-labelledby="clip-dialog-title"><form method="dialog" id="clip-form"><div class="dialog-head"><div><p class="eyebrow">Clip details</p><h2 id="clip-dialog-title">Add a practice clip</h2></div><button class="icon-button" type="button" data-action="close-dialog" aria-label="Close dialog">×</button></div><p id="selected-file" class="file-chip"></p><label for="clip-title">Clip title</label><input id="clip-title" name="title" autocomplete="off" maxlength="80" required><label for="clip-transcript">Transcript <span>(one phrase per line)</span></label><textarea id="clip-transcript" name="transcript" rows="5" maxlength="5000" aria-describedby="transcript-help"></textarea><p class="field-help" id="transcript-help">During practice, choose the line you want to keep in view.</p><label class="check-row"><input id="rights-check" type="checkbox" required> <span>I have permission to use this audio.</span></label><div id="clip-error" class="form-error" role="alert"></div><div class="dialog-actions"><button class="button button-outline" type="button" data-action="close-dialog">Cancel</button><button class="button button-primary" type="submit">Save clip locally</button></div></form></dialog><div id="toast" class="toast" role="status" aria-live="polite" hidden></div><script type="module" src="/src/main.ts"></script>
+</body></html>

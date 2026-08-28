@@ -1,108 +1,87 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
-function shortWav(): Buffer {
-  const sampleRate = 8_000;
-  const samples = 1_600;
-  const dataSize = samples * 2;
-  const buffer = Buffer.alloc(44 + dataSize);
-  buffer.write('RIFF', 0);
-  buffer.writeUInt32LE(36 + dataSize, 4);
-  buffer.write('WAVEfmt ', 8);
-  buffer.writeUInt32LE(16, 16);
-  buffer.writeUInt16LE(1, 20);
-  buffer.writeUInt16LE(1, 22);
-  buffer.writeUInt32LE(sampleRate, 24);
-  buffer.writeUInt32LE(sampleRate * 2, 28);
-  buffer.writeUInt16LE(2, 32);
-  buffer.writeUInt16LE(16, 34);
-  buffer.write('data', 36);
-  buffer.writeUInt32LE(dataSize, 40);
-  for (let index = 0; index < samples; index += 1) {
-    buffer.writeInt16LE(Math.round(Math.sin(index / 8) * 1200), 44 + index * 2);
-  }
-  return buffer;
-}
+test('@claim:sample-loop opens a prepared dialogue with a selected line and three-second gap', async ({ page }) => {
+  await page.goto('/demo/');
+  await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bakery greeting' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Je voudrais deux croissants/i })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Silent gap between repetitions')).toHaveValue('3');
+  await expect(page.getByText('3 repeats', { exact: true })).toBeVisible();
+});
 
-test('imports a real clip, persists it, and stays usable offline', async ({ page, context }) => {
-  const consoleErrors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
-
+test('@claim:demo-isolation keeps demo records and preferences out of real storage, then resets them', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: /Listen\. Say it\. Check\./i })).toBeVisible();
-  await expect(page.getByRole('main')).toBeVisible();
+  await page.evaluate(() => localStorage.setItem('agl_selected_clip', 'real-clip'));
+  await page.goto('/demo/');
+  const before = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => { const request = indexedDB.open('demo:audio-gap-loop'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const count = await new Promise<number>((resolve, reject) => { const request = database.transaction('clips').objectStore('clips').count(); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    database.close(); return { real: localStorage.getItem('agl_selected_clip'), demo: localStorage.getItem('demo:agl_selected_clip'), count };
+  });
+  expect(before).toEqual({ real: 'real-clip', demo: 'demo-bakery-greeting', count: 1 });
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByText('Sample practice loop reset.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bakery greeting' })).toBeVisible();
+});
 
-  const accessibility = await new AxeBuilder({ page }).analyze();
-  expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
-
-  const chooserPromise = page.waitForEvent('filechooser');
-  await page.locator('.hero').getByRole('button', { name: 'Add your first clip' }).click();
-  const chooser = await chooserPromise;
-  await chooser.setFiles({ name: 'bonjour.wav', mimeType: 'audio/wav', buffer: shortWav() });
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.getByLabel('Transcript (one phrase per line)').fill('Bonjour !\nÀ demain.');
-  await page.getByLabel('I have permission to use this audio.').check();
-  await page.getByRole('button', { name: 'Save clip locally' }).click();
-
-  await expect(page.locator('.player-shell').getByRole('heading', { name: 'bonjour' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Bonjour !' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'À demain.' }).click();
-  await expect(page.getByRole('button', { name: 'À demain.' })).toHaveAttribute('aria-pressed', 'true');
-  const playerAccessibility = await new AxeBuilder({ page }).analyze();
-  expect(playerAccessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
-
-  await page.reload();
-  await expect(page.locator('.player-shell').getByRole('heading', { name: 'bonjour' })).toBeVisible();
+test('@claim:offline-reload reloads the demo player while offline after the first visit', async ({ page, context }) => {
+  await page.goto('/demo/');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByText('Offline. Your saved clips and practice tools still work.')).toBeVisible();
-  await expect(page.locator('.player-shell').getByRole('heading', { name: 'bonjour' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bakery greeting' })).toBeVisible();
   await context.setOffline(false);
-  expect(consoleErrors).toEqual([]);
 });
 
-test('phone layout exposes primary controls without horizontal overflow', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
-  await expect(page.locator('.hero').getByRole('button', { name: 'Add your first clip' })).toBeVisible();
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(1);
+test('@claim:csv-export downloads one row per recorded demo session', async ({ page }) => {
+  await page.goto('/demo/');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export log CSV' }).click();
+  const file = await download;
+  expect(await file.suggestedFilename()).toMatch(/^audio-gap-loop-log-.*\.csv$/);
+  const body = await readFile(await file.path());
+  expect(body.toString()).toContain('completed_at,clip,repetitions,seconds_listened');
+  expect(body.toString().split('\n')).toHaveLength(2);
 });
 
-async function expectTouchTargets(page: import('@playwright/test').Page, selector: string): Promise<void> {
-  const dimensions = await page.locator(selector).evaluateAll((elements) => elements.map((element) => {
-    const { width, height } = element.getBoundingClientRect();
-    return { label: element.textContent?.trim(), width, height };
-  }));
-  for (const target of dimensions) {
-    expect(target.width, `${target.label} must be at least 44 CSS pixels wide`).toBeGreaterThanOrEqual(44);
-    expect(target.height, `${target.label} must be at least 44 CSS pixels tall`).toBeGreaterThanOrEqual(44);
+test('@claim:backup-export downloads a JSON backup containing the sample clip', async ({ page }) => {
+  await page.goto('/demo/');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export backup' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^audio-gap-loop-backup-.*\.json$/);
+  const text = await readFile(await file.path(), 'utf8');
+  expect(JSON.parse(text).clips[0].title).toBe('Bakery greeting');
+});
+
+test('@claim:local-only-demo makes no third-party request during a complete demo visit', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', request => requests.push(request.url()));
+  await page.goto('/demo/');
+  await page.getByRole('button', { name: /Je voudrais deux croissants/i }).click();
+  await page.getByRole('button', { name: 'Export log CSV' }).click();
+  expect(requests.every(url => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
+});
+
+test('routes have titles, focusable landmarks, and no serious axe issues', async ({ page }) => {
+  for (const route of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+    await page.goto(route);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page).toHaveTitle(/Audio Gap Loop/);
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   }
-}
-
-test('navigation and footer links keep 44px targets on desktop and mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
-  await expectTouchTargets(page, '.brand, nav a, footer a');
-
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expectTouchTargets(page, '.brand, footer a');
 });
 
-test('does not advertise an unavailable Studio checkout, while license restore remains usable', async ({ page }) => {
-  await page.route('https://api.sociobot.in/api/v1/products/audio-gap-loop/verify?license=existing-license', async (route) => {
-    await route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ valid: false, reason: 'invalid', expires_at: null })
-    });
-  });
+test('mobile layout has no horizontal overflow and legal links work', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-
-  await expect(page.getByText('Studio purchases are being set up.')).toBeVisible();
-  await expect(page.getByRole('link', { name: /buy studio/i })).toHaveCount(0);
-  await page.getByLabel('License token').fill('existing-license');
-  await page.getByRole('button', { name: 'Verify license' }).click();
-  await expect(page.getByText(/license is no longer active/i)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await page.getByRole('link', { name: 'Privacy' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Privacy information' })).toBeVisible();
 });

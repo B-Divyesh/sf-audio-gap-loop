@@ -1,8 +1,13 @@
 import './styles.css';
 import { csvCell, DEFAULT_CADENCE, formatTime, normalizeCadence } from './cadence';
-import { deleteClipRecord, getClips, getLogs, importRecords, putClip, putLog } from './db';
+import { clearRecords, deleteClipRecord, getClips, getLogs, importRecords, putClip, putLog, setDatabaseName } from './db';
 import { captureLicenseFromUrl, checkoutUrl, initialLicenseState, saveLicenseToken, studioCheckoutEnabled, verifyLicense } from './license';
 import type { BackupFile, CadencePreset, Clip, PracticeLog } from './models';
+
+const demoMode = location.pathname === '/demo/' || location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
+const storagePrefix = demoMode ? 'demo:' : '';
+const storageKey = (key: string) => `${storagePrefix}${key}`;
+if (demoMode) setDatabaseName('demo:audio-gap-loop');
 
 const workbench = document.querySelector<HTMLElement>('#workbench-app')!;
 const studio = document.querySelector<HTMLElement>('#studio-app')!;
@@ -24,7 +29,7 @@ audio.preload = 'metadata';
 
 let clips: Clip[] = [];
 let logs: PracticeLog[] = [];
-let selectedId: string | null = localStorage.getItem('agl_selected_clip');
+let selectedId: string | null = localStorage.getItem(storageKey('agl_selected_clip'));
 let objectUrl: string | null = null;
 let pendingFile: File | null = null;
 let editingId: string | null = null;
@@ -33,7 +38,7 @@ let repetitionsThisRun = 0;
 let sessionLogged = false;
 let gapTimer: number | null = null;
 let gapEndsAt = 0;
-let licenseState = initialLicenseState();
+let licenseState = demoMode ? { token: null, unlocked: false, checking: false, message: '' } : initialLicenseState();
 let presets = readJson<CadencePreset[]>('agl_presets', []);
 let queue = readJson<string[]>('agl_queue', []);
 
@@ -45,10 +50,56 @@ function escapeHtml(value: string): string {
 
 function readJson<T>(key: string, fallback: T): T {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? '') as T;
+    return JSON.parse(localStorage.getItem(storageKey(key)) ?? '') as T;
   } catch {
     return fallback;
   }
+}
+
+function writeLocal(key: string, value: string): void {
+  localStorage.setItem(storageKey(key), value);
+}
+
+function makeSampleAudio(): Blob {
+  const rate = 8000;
+  const samples = rate * 2;
+  const buffer = new ArrayBuffer(44 + samples * 2);
+  const view = new DataView(buffer);
+  const text = (offset: number, value: string) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+  text(0, 'RIFF'); view.setUint32(4, 36 + samples * 2, true); text(8, 'WAVEfmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  text(36, 'data'); view.setUint32(40, samples * 2, true);
+  for (let index = 0; index < samples; index += 1) view.setInt16(44 + index * 2, Math.sin(index / 13) * 1500, true);
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+async function seedDemo(): Promise<void> {
+  const existing = await getClips();
+  if (existing.length) return;
+  const now = '2026-08-28T09:00:00.000Z';
+  const clip: Clip = {
+    id: 'demo-bakery-greeting', title: 'Bakery greeting',
+    transcript: 'Bonjour, vous désirez ?\nJe voudrais deux croissants, s’il vous plaît.\nBien sûr. Autre chose ?',
+    activeLine: 1, audio: makeSampleAudio(), mimeType: 'audio/wav', duration: 2,
+    createdAt: now, updatedAt: now, cadence: { ...DEFAULT_CADENCE, gapSeconds: 3, repetitions: 3 }
+  };
+  await putClip(clip);
+  await putLog({ id: 'demo-practice-1', clipId: clip.id, completedAt: '2026-08-28T09:05:00.000Z', repetitions: 3, secondsListened: 6 });
+  writeLocal('agl_selected_clip', clip.id);
+}
+
+async function resetDemo(): Promise<void> {
+  if (!demoMode) return;
+  stopCadence();
+  await clearRecords();
+  ['agl_selected_clip', 'agl_presets', 'agl_queue'].forEach((key) => localStorage.removeItem(storageKey(key)));
+  await seedDemo();
+  [clips, logs] = await Promise.all([getClips(), getLogs()]);
+  selectedId = clips[0]?.id ?? null;
+  if (selectedId) await loadClipAudio(clips[0]);
+  renderWorkbench();
+  showToast('Sample practice loop reset.');
 }
 
 function selectedClip(): Clip | undefined {
@@ -109,7 +160,7 @@ function renderWorkbench(): void {
       <div class="empty-state">
         <div class="empty-cassette" aria-hidden="true"></div>
         <div>
-          <h3>Your tape box is empty</h3>
+          <h3>No practice clips yet</h3>
           <p>Add a short MP3, M4A, WAV, OGG, Opus, or WebM clip that you have permission to use. It never leaves this device.</p>
         </div>
         <button class="button button-primary" type="button" data-action="open-import">Choose an audio clip</button>
@@ -165,7 +216,7 @@ function playerMarkup(clip: Clip, lines: string[]): string {
   const activeLine = Math.min(clip.activeLine, Math.max(0, lines.length - 1));
   return `<section class="player-shell ${phase === 'playing' ? 'is-playing' : ''}" aria-label="Practice player for ${escapeHtml(clip.title)}">
     <div class="player-top">
-      <div><p class="eyebrow">Now on the deck</p><h3>${escapeHtml(clip.title)}</h3></div>
+      <div><p class="eyebrow">Current clip</p><h3>${escapeHtml(clip.title)}</h3></div>
       <div class="player-tools">
         <button class="icon-button" type="button" data-action="edit-clip">Edit</button>
         <button class="icon-button" type="button" data-action="delete-clip">Delete</button>
@@ -241,29 +292,32 @@ function updateTransportDisplay(): void {
 }
 
 function renderStudio(): void {
+  if (!studioCheckoutEnabled && !licenseState.unlocked) {
+    studio.innerHTML = '<div class="checkout-unavailable" role="status"><h3>Studio extras are not available yet.</h3><p>The practice player and data exports are ready to use.</p></div>';
+    return;
+  }
   const current = selectedClip();
   const queueClips = queue.map((id) => clips.find((clip) => clip.id === id)).filter((clip): clip is Clip => Boolean(clip));
   studio.innerHTML = `
     <div class="studio-grid">
       <div class="studio-copy">
-        <h3>Keep the core free. Keep the extras forever.</h3>
-        <ul><li>Save reusable cadence presets</li><li>Arrange a calm, ordered clip queue</li><li>One purchase; no subscription or account required</li></ul>
+        <h3>Studio extras are not available yet.</h3>
+        <p>Saved presets and a practice queue will appear here when they are ready.</p>
         ${licenseState.unlocked
     ? '<p><strong>Unlocked on this device.</strong></p>'
     : studioCheckoutEnabled
-      ? `<a class="button button-primary" href="${checkoutUrl}">Buy Studio for $9</a>`
-      : '<p class="checkout-unavailable" role="status"><strong>Studio purchases are being set up.</strong> Presets and queues will be available here when checkout is ready. If you already purchased Studio, you can restore your license alongside.</p>'}
+      ? `<a class="button button-primary" href="${checkoutUrl}">Buy Studio</a>`
+      : '<p class="checkout-unavailable" role="status"><strong>Studio extras are not available yet.</strong> You can still use the practice player and exports.</p>'}
       </div>
       <div class="license-panel">
         <h3>${licenseState.unlocked ? 'License active' : 'Restore a purchase'}</h3>
-        <p>${licenseState.unlocked ? 'Daily checks happen quietly when online. The core player never waits for them.' : 'Already bought Studio? Paste the license token from your receipt.'}</p>
+        <p>${licenseState.unlocked ? 'The core player never waits for a license check.' : 'If you have a Studio license, paste its token here.'}</p>
         <form class="license-form" id="license-form">
           <label for="license-token">License token</label>
           <input id="license-token" name="license" type="text" autocomplete="off" spellcheck="false" required />
           <button class="button button-dark" type="submit">Verify license</button>
         </form>
         <p class="license-status" role="status">${escapeHtml(licenseState.message)}</p>
-        <p class="field-help">Sociobot/Dodo is the merchant of record. Refunds are handled there and revoke the license.</p>
       </div>
     </div>
     <div class="studio-tools ${licenseState.unlocked ? '' : 'locked-tool'}" aria-label="Studio extras">
@@ -294,7 +348,7 @@ async function selectClip(id: string): Promise<void> {
   const clip = clips.find((item) => item.id === id);
   if (!clip) return;
   selectedId = id;
-  localStorage.setItem('agl_selected_clip', id);
+  writeLocal('agl_selected_clip', id);
   await loadClipAudio(clip);
   renderWorkbench();
   document.querySelector('.player-shell')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -572,7 +626,7 @@ async function importBackup(file: File): Promise<void> {
     clips = await getClips();
     logs = await getLogs();
     queue = queue.filter((id) => clips.some((clip) => clip.id === id));
-    localStorage.setItem('agl_queue', JSON.stringify(queue));
+    writeLocal('agl_queue', JSON.stringify(queue));
     if (clips.length) await selectClip(selectedId && clips.some((clip) => clip.id === selectedId) ? selectedId : clips[0].id);
     else renderWorkbench();
     showToast(`Imported ${restoredClips.length} clips and ${parsed.logs.length} practice entries.`);
@@ -607,7 +661,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       clips = clips.filter((item) => item.id !== clip.id);
       logs = logs.filter((log) => log.clipId !== clip.id);
       queue = queue.filter((id) => id !== clip.id);
-      localStorage.setItem('agl_queue', JSON.stringify(queue));
+      writeLocal('agl_queue', JSON.stringify(queue));
       selectedId = clips[0]?.id ?? null;
       if (selectedId) await loadClipAudio(clips[0]);
       renderWorkbench();
@@ -616,17 +670,19 @@ async function handleAction(target: HTMLElement): Promise<void> {
     }
     case 'select-line': await chooseTranscriptLine(Number(actionTarget.dataset.line)); break;
     case 'dismiss-toast': toast.hidden = true; break;
+    case 'reset-demo': await resetDemo(); break;
+    case 'start-real': location.assign('/'); break;
     case 'export-json': await exportBackup(); break;
     case 'export-csv': exportCsv(); break;
     case 'import-json': backupInput.click(); break;
     case 'queue-current': {
       const clip = selectedClip();
       if (licenseState.unlocked && clip && !queue.includes(clip.id)) {
-        queue.push(clip.id); localStorage.setItem('agl_queue', JSON.stringify(queue)); renderStudio(); announce(`${clip.title} added to the queue.`);
+        queue.push(clip.id); writeLocal('agl_queue', JSON.stringify(queue)); renderStudio(); announce(`${clip.title} added to the queue.`);
       }
       break;
     }
-    case 'remove-queue': queue = queue.filter((id) => id !== actionTarget.dataset.id); localStorage.setItem('agl_queue', JSON.stringify(queue)); renderStudio(); break;
+    case 'remove-queue': queue = queue.filter((id) => id !== actionTarget.dataset.id); writeLocal('agl_queue', JSON.stringify(queue)); renderStudio(); break;
     case 'practice-queued': await selectClip(actionTarget.dataset.id!); document.querySelector('#workbench')?.scrollIntoView(); break;
     case 'apply-preset': {
       const clip = selectedClip();
@@ -637,7 +693,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       }
       break;
     }
-    case 'remove-preset': presets = presets.filter((item) => item.id !== actionTarget.dataset.id); localStorage.setItem('agl_presets', JSON.stringify(presets)); renderStudio(); break;
+    case 'remove-preset': presets = presets.filter((item) => item.id !== actionTarget.dataset.id); writeLocal('agl_presets', JSON.stringify(presets)); renderStudio(); break;
   }
 }
 
@@ -677,7 +733,7 @@ document.addEventListener('submit', (event) => {
     const name = new FormData(form).get('name')?.toString().trim();
     if (!licenseState.unlocked || !clip || !name) return;
     presets.push({ id: crypto.randomUUID(), name, cadence: { ...clip.cadence } });
-    localStorage.setItem('agl_presets', JSON.stringify(presets));
+    writeLocal('agl_presets', JSON.stringify(presets));
     renderStudio();
     showToast('Cadence preset saved.');
   }
@@ -753,11 +809,15 @@ async function registerServiceWorker(): Promise<void> {
 
 async function init(): Promise<void> {
   updateNetworkStatus();
-  renderStudio();
+  if (demoMode) {
+    document.title = 'Demo — Audio Gap Loop';
+    document.querySelector<HTMLElement>('#demo-banner')!.hidden = false;
+    await seedDemo();
+  } else renderStudio();
   try {
     [clips, logs] = await Promise.all([getClips(), getLogs()]);
     queue = queue.filter((id) => clips.some((clip) => clip.id === id));
-    localStorage.setItem('agl_queue', JSON.stringify(queue));
+    writeLocal('agl_queue', JSON.stringify(queue));
     if (clips.length) {
       const initial = selectedId && clips.some((clip) => clip.id === selectedId) ? selectedId : clips[0].id;
       selectedId = initial;
@@ -768,6 +828,7 @@ async function init(): Promise<void> {
     workbench.setAttribute('aria-busy', 'false');
     workbench.innerHTML = '<div class="notice notice-error" role="alert"><strong>Local storage did not open.</strong><br>Check that private browsing or storage restrictions are not blocking this site, then reload.</div>';
   }
+  if (demoMode) { renderStudio(); void registerServiceWorker(); return; }
   const returnedFromCheckout = captureLicenseFromUrl();
   if (returnedFromCheckout) licenseState = initialLicenseState();
   if (licenseState.token || returnedFromCheckout) {
