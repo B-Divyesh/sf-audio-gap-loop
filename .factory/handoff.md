@@ -1,24 +1,45 @@
-# Review 1 handoff — Audio Gap Loop
+# Polish 1 handoff — Audio Gap Loop
 
-Completed adversarial first-read work order `audio-gap-loop-review-1` on 2026-08-28 UTC. No product code, deployment, billing, DNS, or infrastructure was changed. This handoff and `.factory/review-1.md` are the only review changes.
+Repair commit: `4ff1f0b67d417ac0c3d886d5c687f291e89099a1` (base `f0e7e9abfd3fbc5f9d09cdd4039e52872982a29c`).
 
-## Result
+## Delivered
 
-**FAIL.** The live product loads and has a distinct cassette-era visual identity, but it lacks the required one-click isolated demo, claim inventory/tagged claim tests, and real `/demo`/designed-404 routes. Full evidence, exact copy audit, current versus earlier-report checks, and concrete repair work are in `.factory/review-1.md`.
+- A one-click `/demo/` and `?demo=1` sample path with a realistic dialogue, selected transcript line, 3-second gap, existing log, visible demo banner, reset, and start-real action.
+- Strictly separate demo IndexedDB (`demo:audio-gap-loop`) and `demo:` local-storage namespace.
+- Claim inventory with six observable clean-demo browser proofs.
+- Plain first-screen wording, compact README, catalog description, and copy audit.
+- Built demo/404 routes, static-host 404 rewrite, legal route header/footer/focus handling, per-route metadata, social image, and icon assets.
+- Mobile overflow repair and current service-worker cache version.
 
-## Verification performed
+The cassette-era study-zine identity, original generated cassette illustration, local-first PWA class, and static `dist/` deployment model are retained.
+
+## Verification
+
+Clean clone: `/tmp/audio-gap-loop-clean.KyZoZC`.
 
 ```sh
-npm ci
-npm test
-npm run build
+npm ci                         # PASS, 0 audit vulnerabilities
+npm test                       # PASS, 8 Vitest + 8 Playwright tests
+npm run build                  # PASS, dist/ produced
+npm audit --audit-level=high   # PASS, 0 vulnerabilities
 ```
 
-All passed: `npm test` reported 8 Vitest and 4 Playwright tests; `npm run build` produced `dist/`. Fresh live desktop and 390px Chromium contexts had no console/page errors. Empty normal-flow requests were same-origin only and a live axe scan had no serious/critical violations.
+All six listed claim commands passed independently from that clean clone: `sample-loop`, `demo-isolation`, `offline-reload`, `csv-export`, `backup-export`, and `local-only-demo`.
 
-## Blocking next steps
+Local browser evidence:
 
-1. Implement `/demo` with realistic sample data, an always-visible no-save/reset/start-real banner, and genuinely isolated demo storage; document it in `.factory/demo.md`.
-2. Add `.factory/claims.json` and one clean-demo `@claim:` test for every factual product promise.
-3. Add real demo/404 routes, route focus management, common legal-page header/footer, and the metadata/copy repairs in the review.
-4. Re-run the entire first-read checklist from a fresh browser context and clean clone. Do not treat prior core-product verification as closure for demo/claim requirements.
+- `verify-url.sh http://127.0.0.1:4173/` passed: HTTP 200, title, `lang=en`, one h1, main, labelled controls, image alt text, and no console errors.
+- Axe in the browser route suite found no serious or critical violations across `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404.html`.
+- 390×844 demo measured exactly `390 / 390` for scroll width / client width.
+- `/privacy/` moved focus to its h1. Screenshots: `.factory/evidence/demo-mobile.png`, `.factory/evidence/privacy-mobile.png`.
+- Claim test `@claim:offline-reload` controls the worker then uses `context.setOffline(true)` and reloads `/demo/` successfully.
+
+Build output: main JavaScript 30.29 kB raw / 10.32 kB gzip; main CSS 17.67 kB raw / 4.66 kB gzip. The 1200×630 social image is 186 kB.
+
+## Deploy
+
+Push this repair commit to `main`; the static deployment work order is configured from that branch. After the push, open `https://audio-gap-loop.sociobot.in/demo/` cold and repeat the route, banner, mobile-overflow, console, and claim smoke checks before declaring the deployed release complete.
+
+## Known gaps
+
+None in the repaired product scope. Studio sales remain intentionally unavailable because checkout is not factory-enabled; the product shows neither a price nor a purchase CTA.
