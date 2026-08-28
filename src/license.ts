@@ -20,6 +20,17 @@ export interface LicenseState {
 
 export const checkoutUrl = `${BILLING_BASE}/products/${PRODUCT_SLUG}/checkout`;
 
+/**
+ * A checkout product must be enabled by the factory before a public build can
+ * send somebody to it. Defaulting to false prevents a broken paid journey if
+ * a static deployment is published before that external registration exists.
+ */
+export function studioSalesEnabled(value = import.meta.env.VITE_STUDIO_SALES_ENABLED): boolean {
+  return value === 'true';
+}
+
+export const studioCheckoutEnabled = studioSalesEnabled();
+
 function cachedVerdict(): Verdict | null {
   try {
     return JSON.parse(localStorage.getItem(VERDICT_KEY) ?? 'null') as Verdict | null;

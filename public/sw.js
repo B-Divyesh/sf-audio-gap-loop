@@ -1,4 +1,4 @@
-const CACHE_NAME = 'audio-gap-loop-shell-v2';
+const CACHE_NAME = 'audio-gap-loop-shell-v3';
 const CORE = [
   '/',
   '/offline.html',

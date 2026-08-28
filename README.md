@@ -14,7 +14,7 @@ Live product: <https://audio-gap-loop.sociobot.in>
 - Installs as a PWA and reloads saved clips offline.
 - Includes hearing-safe volume guidance and keyboard controls.
 
-Studio is an optional $9 one-time license unlock for reusable cadence presets and an ordered practice queue. The core player, unlimited clips, safety features, and data export are free. Checkout and license verification use the Sociobot billing API; no payment provider is embedded here.
+Studio is an optional $9 one-time license unlock for reusable cadence presets and an ordered practice queue. The core player, unlimited clips, safety features, and data export are free. Checkout and license verification use the Sociobot billing API; no payment provider is embedded here. Public purchase links stay unavailable until the factory enables the product in that billing service, so a release never sends someone to an unavailable checkout.
 
 ## Run locally
 
@@ -61,6 +61,12 @@ Production defaults to `https://api.sociobot.in/api/v1`. A factory staging build
 
 ```sh
 VITE_BILLING_BASE=https://pilot-api.sociobot.in/api/v1 npm run build
+```
+
+After the factory registers and tests checkout for this slug, it must explicitly enable the public purchase CTA in the release build:
+
+```sh
+VITE_STUDIO_SALES_ENABLED=true npm run build
 ```
 
 The product slug is `audio-gap-loop`; no billing product ID or secret is stored in this repository.

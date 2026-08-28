@@ -90,3 +90,19 @@ test('navigation and footer links keep 44px targets on desktop and mobile', asyn
   await page.setViewportSize({ width: 390, height: 844 });
   await expectTouchTargets(page, '.brand, footer a');
 });
+
+test('does not advertise an unavailable Studio checkout, while license restore remains usable', async ({ page }) => {
+  await page.route('https://api.sociobot.in/api/v1/products/audio-gap-loop/verify?license=existing-license', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ valid: false, reason: 'invalid', expires_at: null })
+    });
+  });
+  await page.goto('/');
+
+  await expect(page.getByText('Studio purchases are being set up.')).toBeVisible();
+  await expect(page.getByRole('link', { name: /buy studio/i })).toHaveCount(0);
+  await page.getByLabel('License token').fill('existing-license');
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.getByText(/license is no longer active/i)).toBeVisible();
+});

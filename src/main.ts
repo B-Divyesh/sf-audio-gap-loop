@@ -1,7 +1,7 @@
 import './styles.css';
 import { csvCell, DEFAULT_CADENCE, formatTime, normalizeCadence } from './cadence';
 import { deleteClipRecord, getClips, getLogs, importRecords, putClip, putLog } from './db';
-import { captureLicenseFromUrl, checkoutUrl, initialLicenseState, saveLicenseToken, verifyLicense } from './license';
+import { captureLicenseFromUrl, checkoutUrl, initialLicenseState, saveLicenseToken, studioCheckoutEnabled, verifyLicense } from './license';
 import type { BackupFile, CadencePreset, Clip, PracticeLog } from './models';
 
 const workbench = document.querySelector<HTMLElement>('#workbench-app')!;
@@ -248,7 +248,11 @@ function renderStudio(): void {
       <div class="studio-copy">
         <h3>Keep the core free. Keep the extras forever.</h3>
         <ul><li>Save reusable cadence presets</li><li>Arrange a calm, ordered clip queue</li><li>One purchase; no subscription or account required</li></ul>
-        ${licenseState.unlocked ? '<p><strong>Unlocked on this device.</strong></p>' : `<a class="button button-primary" href="${checkoutUrl}">Buy Studio for $9</a>`}
+        ${licenseState.unlocked
+    ? '<p><strong>Unlocked on this device.</strong></p>'
+    : studioCheckoutEnabled
+      ? `<a class="button button-primary" href="${checkoutUrl}">Buy Studio for $9</a>`
+      : '<p class="checkout-unavailable" role="status"><strong>Studio purchases are being set up.</strong> Presets and queues will be available here when checkout is ready. If you already purchased Studio, you can restore your license alongside.</p>'}
       </div>
       <div class="license-panel">
         <h3>${licenseState.unlocked ? 'License active' : 'Restore a purchase'}</h3>

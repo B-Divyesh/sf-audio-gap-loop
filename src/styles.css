@@ -250,6 +250,7 @@ h3 { margin-bottom: 8px; font-size: 1.25rem; }
 .license-form label, .preset-form label { font-weight: 800; }
 .license-form input, .preset-form input { width: 100%; min-height: 46px; padding: 8px 10px; border: 2px solid var(--ink); background: #fff; }
 .license-status { margin: 12px 0 0; color: var(--muted); }
+.checkout-unavailable { margin: 18px 0 0; padding: 12px; border-left: 4px solid var(--blue); background: var(--paper-light); }
 .studio-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; }
 .studio-tool { padding-top: 16px; border-top: 3px solid var(--ink); }
 .preset-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
