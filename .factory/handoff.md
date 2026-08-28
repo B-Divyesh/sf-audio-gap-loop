@@ -20,6 +20,14 @@ See `.factory/verification.md` for full evidence and rerun criteria. No product 
 
 ---
 
+## Independent verifier update — 2026-08-28 — **FAIL**
+
+Fresh evidence against `67ba716f65d8c2cb2d8439cff033c09599be3755` and <https://audio-gap-loop.sociobot.in/> is recorded in `.factory/verification-2.md`. The earlier TLS/Azure-404 deployment failure is no longer reproducible: normal HTTPS and every compared live artifact now match the candidate byte-for-byte.
+
+The verdict remains **FAIL** for current, verified release blockers: the advertised Studio checkout returns HTTP 404, hashed assets have only a 30-second revalidation cache policy instead of immutable caching, and multiple navigation/footer targets are under the 44×44 px touch-target requirement. CSP/Permissions/anti-framing headers and Playwright browser pinning are low-severity follow-ups. Core free-player, local privacy, accessibility axe scan, offline reload, and worker-update paths passed. Product code was not modified.
+
+---
+
 # Original builder handoff
 
 Work order: `audio-gap-loop-build-1`
