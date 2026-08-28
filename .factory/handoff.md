@@ -79,3 +79,23 @@ After factory billing registration succeeds, test hosted checkout, the
 staging build with `VITE_STUDIO_SALES_ENABLED=true`; only then deploy that
 enabled-sales build. No infrastructure, DNS, payment provider, or billing
 configuration was changed from this repository.
+
+## Deployment evidence
+
+- Deployed 2026-08-28 with
+  `/opt/fleet/lib/deploy-static.sh audio-gap-loop dist`.
+- Azure Static Web Apps deployment ID:
+  `d05bedd9-efab-43c6-91af-c646a8f0ef18`; custom domain was `Ready` and normal
+  HTTPS returned 200.
+- Live `verify-url.sh` passed in 747 ms with zero browser errors and the same
+  title/lang/h1/main/alt/button checks as local preview.
+- The live `main-iWILbOYy.js` SHA-256 exactly matched `dist`:
+  `9fb3391d057e1fe303c62ba436ee76cc30e4e21337d2778fb32a70a8b9203973`.
+- Live browser at 390px: the first Tab reached “Skip to practice”, there were
+  zero Buy Studio links, the availability message was visible, the worker was
+  controlling the page, overflow was 1px, and there were zero console/page
+  errors.
+- Live hashed JS was immutable; `sw.js` was `no-cache, no-store,
+  must-revalidate`; the manifest was `application/manifest+json` and
+  revalidated; CSP, Permissions-Policy, X-Frame-Options, nosniff, referrer
+  policy, and HTTPS headers were present.
