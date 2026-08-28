@@ -32,3 +32,9 @@ done
 ```
 
 All commands passed in a clean clone at `/tmp/audio-gap-loop-clean.KyZoZC`. Local `/demo/`, `/privacy/`, and `/404.html` passed browser checks; screenshot evidence is in `.factory/evidence/`.
+
+## Deployed recheck
+
+Deployed through the static work-order configuration on 2026-08-28: Azure Static Web Apps deployment `a6153a38-15c6-4dab-b303-697bffdff62c` succeeded, custom-domain status was `Ready`, and HTTPS returned 200.
+
+Cold live Playwright checks at `https://audio-gap-loop.sociobot.in` found one h1, exact 390/390 mobile width, and zero serious/critical axe findings on `/`, `/demo/`, `/?demo=1`, `/privacy/`, `/terms/`, and a missing URL. `/demo/` and `?demo=1` showed the demo banner; privacy/terms/404 focused their h1. `/opt/fleet/lib/verify-url.sh` passed on the live root with zero root-page console errors.

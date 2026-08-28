@@ -38,7 +38,9 @@ Build output: main JavaScript 30.29 kB raw / 10.32 kB gzip; main CSS 17.67 kB ra
 
 ## Deploy
 
-Push this repair commit to `main`; the static deployment work order is configured from that branch. After the push, open `https://audio-gap-loop.sociobot.in/demo/` cold and repeat the route, banner, mobile-overflow, console, and claim smoke checks before declaring the deployed release complete.
+Pushed to `main` as `a16ec28c689964ddaf81c4855c60577b470ffa08`. Deployed through the static work-order configuration as Azure Static Web Apps deployment `a6153a38-15c6-4dab-b303-697bffdff62c`; upload succeeded, custom-domain status was `Ready`, and HTTPS returned 200.
+
+Cold live recheck passed at `https://audio-gap-loop.sociobot.in`: `/demo/` and `?demo=1` show the isolated-demo banner, all checked routes have one h1 and no serious/critical axe issues, mobile width is exactly 390/390, legal/404 pages focus their h1, and `verify-url.sh` reports no root-page console errors.
 
 ## Known gaps
 
