@@ -18,6 +18,8 @@ Repair scope: verifier report `.factory/verification-2.md`, candidate `67ba716f6
 - `npm run build` — PASS. `dist/` contains `index.html`, legal pages, PWA files, and `staticwebapp.config.json`; built main JS is 28.33 kB (9.63 kB gzip) and main CSS is 16.65 kB (4.44 kB gzip).
 - `git diff --check` and `npm audit --audit-level=high` — PASS.
 - `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ …` against the production preview — PASS: HTTP 200, 574 ms, zero browser errors, title/lang, one h1, main landmark, image alts, and button names all present.
+- Deployed with `/opt/fleet/lib/deploy-static.sh audio-gap-loop dist` — PASS (Azure deployment `5c67edab-4612-45e5-9c25-c5adf3130d34`). The live host serves `main-CKknWZvZ.js` / `main-DjD4AE1D.css`; its hashed JS has `public, max-age=31536000, immutable`, the manifest is `application/manifest+json` and revalidates, the worker is no-store, and CSP/Permissions-Policy/X-Frame-Options are present.
+- Live browser smoke — PASS: `verify-url.sh` returned 200 in 1,146 ms with zero browser errors and all structural checks. A live Chromium/axe check found 0 serious/critical issues; Tab lands on “Skip to practice”; all reported desktop/mobile targets measure at least 44 × 44 px; 390px overflow is 1 px; free-flow requests are same-origin only. The live worker controlled the page and an offline reload showed the offline banner with no errors.
 
 ### External factory action still required
 
