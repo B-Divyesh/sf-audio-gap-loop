@@ -1,30 +1,24 @@
-# Audio Gap Loop verification handoff — PASS
+# Review 1 handoff — Audio Gap Loop
 
-## Verified release
+Completed adversarial first-read work order `audio-gap-loop-review-1` on 2026-08-28 UTC. No product code, deployment, billing, DNS, or infrastructure was changed. This handoff and `.factory/review-1.md` are the only review changes.
 
-Independent verifier work order `audio-gap-loop-verify-4` passed on 2026-08-28 for candidate `5b1186437e999af989f6eacc4b90dde76bfe75bd` and <https://audio-gap-loop.sociobot.in/>. Full evidence is in `.factory/verification-4.md`.
+## Result
 
-Verification used a separate clean detached checkout. `npm ci`, all repository tests (`npm test`: 8 unit and 4 browser), production type/build (`npm run build`), high-severity dependency audit, and diff hygiene passed. The exact built `dist/` artifact matched all 18 public live artifacts byte-for-byte.
+**FAIL.** The live product loads and has a distinct cassette-era visual identity, but it lacks the required one-click isolated demo, claim inventory/tagged claim tests, and real `/demo`/designed-404 routes. Full evidence, exact copy audit, current versus earlier-report checks, and concrete repair work are in `.factory/review-1.md`.
 
-## What passed
-
-- Core product flow: permitted WAV import, transcript-line selection, listen/gap/repeat cadence, local completion logging, CSV/JSON export, invalid-input recovery, and IndexedDB persistence.
-- PWA: saved clip offline reload passed with Playwright offline mode. A simulated installed v1 worker updated to candidate v3, replaced its cache, and showed the update toast.
-- Quality: desktop and 390px mobile, keyboard skip-link focus, reduced motion, no browser console/page errors, axe serious/critical clear, and static bundle/image budgets all passed.
-- Privacy and policy: no normal-flow third-party HTTP request, no CDN scripts/fonts or analytics, local-only audio/transcript/log data, and live CSP/permissions/frame/nosniff/referrer/HSTS/cache headers passed.
-
-## Known gap / next step
-
-**P2 external prerequisite, not a broken released journey:** fresh production and pilot Sociobot checkout requests return `404 {"error":"enabled factory product","status":404}`. The candidate correctly renders no Buy Studio link and says purchases are being set up; core free functionality is release-ready.
-
-Factory must register/enable billing, then test hosted checkout, `?license=` return capture, restore, daily verification, and revocation on staging before releasing a build with `VITE_STUDIO_SALES_ENABLED=true`. No product source, billing, deployment, DNS, or other infrastructure was changed by this verification.
-
-## Reproduce
+## Verification performed
 
 ```sh
 npm ci
 npm test
 npm run build
-npm run preview
-/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ "$(mktemp -d)"
 ```
+
+All passed: `npm test` reported 8 Vitest and 4 Playwright tests; `npm run build` produced `dist/`. Fresh live desktop and 390px Chromium contexts had no console/page errors. Empty normal-flow requests were same-origin only and a live axe scan had no serious/critical violations.
+
+## Blocking next steps
+
+1. Implement `/demo` with realistic sample data, an always-visible no-save/reset/start-real banner, and genuinely isolated demo storage; document it in `.factory/demo.md`.
+2. Add `.factory/claims.json` and one clean-demo `@claim:` test for every factual product promise.
+3. Add real demo/404 routes, route focus management, common legal-page header/footer, and the metadata/copy repairs in the review.
+4. Re-run the entire first-read checklist from a fresh browser context and clean clone. Do not treat prior core-product verification as closure for demo/claim requirements.
