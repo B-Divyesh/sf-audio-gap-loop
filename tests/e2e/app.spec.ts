@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 
-const origin = 'http://127.0.0.1:4173';
+const origin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4173';
 
 function wavFixture(): Buffer {
   const samples = 8000;
@@ -134,6 +134,8 @@ test('@claim:csv-export downloads one row per recorded demo session', async ({ p
 });
 
 test('@claim:backup-export-import downloads a full backup and restores it in a fresh real workspace', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', request => requests.push(request.url()));
   await page.goto('/demo/');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup' }).click();
@@ -143,6 +145,8 @@ test('@claim:backup-export-import downloads a full backup and restores it in a f
   await page.getByRole('button', { name: 'Start for real' }).click();
   await page.locator('#backup-file').setInputFiles({ name: 'audio-gap-loop-backup.json', mimeType: 'application/json', buffer: Buffer.from(body) });
   await expect(page.getByRole('heading', { name: 'French greeting' })).toBeVisible();
+  expect(requests.some(url => url.startsWith('data:'))).toBe(false);
+  expect(requests.every(url => ['blob:', origin].some(allowed => url.startsWith(allowed)))).toBe(true);
 });
 
 test('@claim:local-only-storage keeps imported audio and practice history in this browser without third-party requests', async ({ page }) => {

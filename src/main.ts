@@ -589,6 +589,18 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+function dataUrlToAudioBlob(dataUrl: string, title: string): Blob {
+  const match = /^data:(audio\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) throw new Error(`Audio is missing for “${title || 'untitled audio clip'}”.`);
+  try {
+    const binary = atob(match[2]);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    return new Blob([bytes], { type: match[1] });
+  } catch {
+    throw new Error(`Audio is damaged for “${title || 'untitled audio clip'}”.`);
+  }
+}
+
 async function exportBackup(): Promise<void> {
   showToast('Preparing your complete local backup…', 12_000);
   const backup: BackupFile = {
@@ -615,11 +627,11 @@ async function importBackup(file: File): Promise<void> {
   try {
     const parsed = JSON.parse(await file.text()) as BackupFile;
     if (parsed.schema !== 1 || !Array.isArray(parsed.clips) || !Array.isArray(parsed.logs)) throw new Error('This is not an Audio Gap Loop backup.');
-    const restoredClips: Clip[] = await Promise.all(parsed.clips.map(async ({ audioBase64, ...clip }) => {
-      if (typeof audioBase64 !== 'string' || !audioBase64.startsWith('data:audio/')) throw new Error(`Audio is missing for “${clip.title ?? 'untitled audio clip'}”.`);
-      const response = await fetch(audioBase64);
-      return { ...clip, audio: await response.blob(), cadence: normalizeCadence(clip.cadence) } as Clip;
-    }));
+    const restoredClips: Clip[] = parsed.clips.map(({ audioBase64, ...clip }) => ({
+      ...clip,
+      audio: dataUrlToAudioBlob(audioBase64, clip.title),
+      cadence: normalizeCadence(clip.cadence)
+    } as Clip));
     const existingById = new Map(clips.map((clip) => [clip.id, clip]));
     const newestClips = restoredClips.filter((clip) => {
       const existing = existingById.get(clip.id);
