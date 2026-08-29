@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Audio Gap Loop",
   "short_name": "Gap Loop",
-  "description": "A calm, offline listen–say–check player for audio you own.",
+  "description": "A calm, offline listen–speak–repeat player for audio you own.",
   "start_url": "/?source=pwa&v=1",
   "scope": "/",
   "display": "standalone",

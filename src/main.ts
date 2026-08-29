@@ -1,6 +1,6 @@
 import './styles.css';
 import { csvCell, DEFAULT_CADENCE, formatTime, normalizeCadence } from './cadence';
-import { clearRecords, deleteClipRecord, getClips, getLogs, importRecords, putClip, putLog, setDatabaseName } from './db';
+import { clearRecords, deleteClipRecord, deleteDatabase, getClips, getLogs, importRecords, putClip, putLog, setDatabaseName } from './db';
 import { captureLicenseFromUrl, checkoutUrl, initialLicenseState, saveLicenseToken, studioCheckoutEnabled, verifyLicense } from './license';
 import type { BackupFile, CadencePreset, Clip, PracticeLog } from './models';
 
@@ -10,7 +10,7 @@ const storageKey = (key: string) => `${storagePrefix}${key}`;
 if (demoMode) setDatabaseName('demo:audio-gap-loop');
 
 const workbench = document.querySelector<HTMLElement>('#workbench-app')!;
-const studio = document.querySelector<HTMLElement>('#studio-app')!;
+const studio = document.querySelector<HTMLElement>('#studio-app');
 const statusRegion = document.querySelector<HTMLElement>('#app-status')!;
 const offlineBanner = document.querySelector<HTMLElement>('#offline-banner')!;
 const audioInput = document.querySelector<HTMLInputElement>('#audio-file')!;
@@ -60,18 +60,12 @@ function writeLocal(key: string, value: string): void {
   localStorage.setItem(storageKey(key), value);
 }
 
-function makeSampleAudio(): Blob {
-  const rate = 8000;
-  const samples = rate * 2;
-  const buffer = new ArrayBuffer(44 + samples * 2);
-  const view = new DataView(buffer);
-  const text = (offset: number, value: string) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
-  text(0, 'RIFF'); view.setUint32(4, 36 + samples * 2, true); text(8, 'WAVEfmt ');
-  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
-  view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
-  text(36, 'data'); view.setUint32(40, samples * 2, true);
-  for (let index = 0; index < samples; index += 1) view.setInt16(44 + index * 2, Math.sin(index / 13) * 1500, true);
-  return new Blob([buffer], { type: 'audio/wav' });
+const SAMPLE_AUDIO_URL = '/assets/french-bonjour-ccby25.oga';
+
+async function loadSampleAudio(): Promise<Blob> {
+  const response = await fetch(SAMPLE_AUDIO_URL);
+  if (!response.ok) throw new Error('The sample audio could not be opened. Reload and try again.');
+  return response.blob();
 }
 
 async function seedDemo(): Promise<void> {
@@ -79,9 +73,9 @@ async function seedDemo(): Promise<void> {
   if (existing.length) return;
   const now = '2026-08-28T09:00:00.000Z';
   const clip: Clip = {
-    id: 'demo-bakery-greeting', title: 'Bakery greeting',
-    transcript: 'Bonjour, vous désirez ?\nJe voudrais deux croissants, s’il vous plaît.\nBien sûr. Autre chose ?',
-    activeLine: 1, audio: makeSampleAudio(), mimeType: 'audio/wav', duration: 2,
+    id: 'demo-french-greeting', title: 'French greeting',
+    transcript: 'Bonjour.',
+    activeLine: 0, audio: await loadSampleAudio(), mimeType: 'audio/ogg', duration: 1,
     createdAt: now, updatedAt: now, cadence: { ...DEFAULT_CADENCE, gapSeconds: 3, repetitions: 3 }
   };
   await putClip(clip);
@@ -100,6 +94,14 @@ async function resetDemo(): Promise<void> {
   if (selectedId) await loadClipAudio(clips[0]);
   renderWorkbench();
   showToast('Sample practice loop reset.');
+}
+
+async function leaveDemo(): Promise<void> {
+  if (!demoMode) return;
+  stopCadence();
+  ['agl_selected_clip', 'agl_presets', 'agl_queue'].forEach((key) => localStorage.removeItem(`demo:${key}`));
+  await deleteDatabase('demo:audio-gap-loop');
+  location.assign('/');
 }
 
 function selectedClip(): Clip | undefined {
@@ -161,9 +163,9 @@ function renderWorkbench(): void {
         <div class="empty-cassette" aria-hidden="true"></div>
         <div>
           <h3>No practice clips yet</h3>
-          <p>Add a short MP3, M4A, WAV, OGG, Opus, or WebM clip that you have permission to use. It never leaves this device.</p>
+          <p>Add an audio clip you have permission to use. It stays in this browser.</p>
         </div>
-        <button class="button button-primary" type="button" data-action="open-import">Choose an audio clip</button>
+        <button class="button button-primary" type="button" data-action="open-import">Import audio file</button>
       </div>`;
     return;
   }
@@ -177,8 +179,8 @@ function renderWorkbench(): void {
 
   workbench.innerHTML = `
     <div class="workspace-grid">
-      <aside class="tape-library" aria-label="Audio clip library">
-        <div class="library-head"><h3>Clip shelf</h3><span class="count-chip">${clips.length} ${clips.length === 1 ? 'clip' : 'clips'}</span></div>
+      <section class="tape-library" aria-labelledby="clip-library-title">
+        <div class="library-head"><h3 id="clip-library-title">Audio clips</h3><span class="count-chip">${clips.length} ${clips.length === 1 ? 'clip' : 'clips'}</span></div>
         <ul class="clip-list">
           ${clips.map((clip) => {
             const reps = logs.filter((log) => log.clipId === clip.id).reduce((sum, log) => sum + log.repetitions, 0);
@@ -187,12 +189,12 @@ function renderWorkbench(): void {
             </button></li>`;
           }).join('')}
         </ul>
-      </aside>
+      </section>
       <div>
         ${playerMarkup(current, lines)}
         <div class="practice-summary" aria-label="Local practice summary">
           <div class="metric"><strong>${clips.length}</strong><span>clips prepared</span></div>
-          <div class="metric"><strong>${totals.repetitions}</strong><span>repetitions logged</span></div>
+          <div class="metric"><strong>${totals.repetitions}</strong><span>repeats logged</span></div>
           <div class="metric"><strong>${Math.round(totals.minutes)}</strong><span>minutes listened</span></div>
         </div>
         <section class="history" aria-labelledby="history-title">
@@ -209,7 +211,7 @@ function renderWorkbench(): void {
   audio.playbackRate = current.cadence.speed;
   updateTransportDisplay();
   renderStudio();
-  announce(`${current.title} selected. ${clipRepetitions} repetitions logged.`);
+  announce(`${current.title} selected. ${clipRepetitions} repeats logged.`);
 }
 
 function playerMarkup(clip: Clip, lines: string[]): string {
@@ -224,7 +226,7 @@ function playerMarkup(clip: Clip, lines: string[]): string {
     </div>
     <div class="cassette-window" aria-hidden="true">
       <div class="reels"><span class="reel"></span><span class="reel"></span></div>
-      <div class="phase-strip"><span class="phase-step" data-phase="playing">Listen</span><span class="phase-step" data-phase="gap">Your turn</span><span class="phase-step" data-phase="complete">Check</span></div>
+      <div class="phase-strip"><span class="phase-step" data-phase="playing">Listen</span><span class="phase-step" data-phase="gap">Your turn</span><span class="phase-step" data-phase="complete">Hear again</span></div>
     </div>
     <section class="transcript-panel" aria-labelledby="transcript-title">
       <h4 id="transcript-title">Transcript line</h4>
@@ -236,17 +238,17 @@ function playerMarkup(clip: Clip, lines: string[]): string {
       <input class="timeline" id="timeline" data-control="seek" type="range" min="0" max="${Math.max(.1, clip.duration)}" value="0" step="0.05" />
       <div class="time-row"><span id="current-time">0:00</span><span>${formatTime(clip.duration)}</span></div>
       <div class="transport-buttons">
-        <button class="button button-primary" type="button" data-action="toggle-play">Start cadence</button>
+        <button class="button button-primary" type="button" data-action="toggle-play">Start timed repeats</button>
         <button class="button button-outline" type="button" data-action="replay">Replay now</button>
-        <button class="button button-outline" type="button" data-action="finish">Done for now</button>
+        <button class="button button-outline" type="button" data-action="finish">Save practice session</button>
       </div>
       <div class="cadence-controls">
-        <label>Silent gap
-          <select data-cadence="gapSeconds" aria-label="Silent gap between repetitions">
+        <label>Speaking gap
+          <select data-cadence="gapSeconds" aria-label="Speaking gap between repeats">
             ${[1, 2, 3, 4, 5, 7, 10, 15, 20].map((value) => `<option value="${value}" ${clip.cadence.gapSeconds === value ? 'selected' : ''}>${value} seconds</option>`).join('')}
           </select>
         </label>
-        <label>Repetitions
+        <label>Repeats
           <input data-cadence="repetitions" type="number" min="1" max="30" value="${clip.cadence.repetitions}" inputmode="numeric" />
         </label>
         <label>Playback speed
@@ -277,7 +279,7 @@ function updateTransportDisplay(): void {
     playing: 'Listen',
     gap: `Your turn — ${Math.max(0, Math.ceil((gapEndsAt - Date.now()) / 1000))}s`,
     paused: 'Paused',
-    complete: 'Cadence complete'
+    complete: 'Timed repeats complete'
   };
   const phaseLabel = document.querySelector<HTMLElement>('#phase-label');
   const repeatCount = document.querySelector<HTMLOutputElement>('#repeat-count');
@@ -286,12 +288,13 @@ function updateTransportDisplay(): void {
   const currentTime = document.querySelector<HTMLElement>('#current-time');
   if (phaseLabel) phaseLabel.textContent = labels[phase];
   if (repeatCount) repeatCount.textContent = `${repetitionsThisRun} / ${current.cadence.repetitions} repeats`;
-  if (button) button.textContent = phase === 'playing' || phase === 'gap' ? 'Pause cadence' : phase === 'paused' ? 'Resume cadence' : phase === 'complete' ? 'Practise again' : 'Start cadence';
+  if (button) button.textContent = phase === 'playing' || phase === 'gap' ? 'Pause timed repeats' : phase === 'paused' ? 'Resume timed repeats' : phase === 'complete' ? 'Practise again' : 'Start timed repeats';
   if (timeline) timeline.value = String(audio.currentTime || 0);
   if (currentTime) currentTime.textContent = formatTime(audio.currentTime);
 }
 
 function renderStudio(): void {
+  if (!studio) return;
   if (!studioCheckoutEnabled && !licenseState.unlocked) {
     studio.innerHTML = '<div class="checkout-unavailable" role="status"><h3>Studio extras are not available yet.</h3><p>The practice player and data exports are ready to use.</p></div>';
     return;
@@ -368,7 +371,7 @@ async function playCurrent(fromStart = true): Promise<void> {
   audio.volume = clip.cadence.volume;
   phase = 'playing';
   updateTransportDisplay();
-  announce(`Listen. Repetition ${repetitionsThisRun + 1} of ${clip.cadence.repetitions}.`);
+  announce(`Listen. Repeat ${repetitionsThisRun + 1} of ${clip.cadence.repetitions}.`);
   try {
     await audio.play();
   } catch {
@@ -399,7 +402,7 @@ function beginGap(): void {
   if (!clip) return;
   phase = 'gap';
   gapEndsAt = Date.now() + clip.cadence.gapSeconds * 1000;
-  announce(`Your turn. ${clip.cadence.gapSeconds} second silent gap.`);
+  announce(`Your turn. ${clip.cadence.gapSeconds} second speaking gap.`);
   clearGapTimer();
   gapTimer = window.setInterval(() => {
     updateTransportDisplay();
@@ -432,7 +435,7 @@ async function finishSession(): Promise<void> {
   await commitSession();
   phase = repetitionsThisRun ? 'complete' : 'idle';
   renderWorkbench();
-  showToast(repetitionsThisRun ? `${repetitionsThisRun} repetitions saved locally.` : 'Practice stopped.');
+  showToast(repetitionsThisRun ? `${repetitionsThisRun} repeats saved locally.` : 'Practice stopped.');
 }
 
 function stopCadence(reset = true): void {
@@ -671,7 +674,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     case 'select-line': await chooseTranscriptLine(Number(actionTarget.dataset.line)); break;
     case 'dismiss-toast': toast.hidden = true; break;
     case 'reset-demo': await resetDemo(); break;
-    case 'start-real': location.assign('/'); break;
+    case 'start-real': await leaveDemo(); break;
     case 'export-json': await exportBackup(); break;
     case 'export-csv': exportCsv(); break;
     case 'import-json': backupInput.click(); break;
@@ -770,7 +773,7 @@ audio.addEventListener('ended', () => {
     phase = 'complete';
     void commitSession().then(() => {
       renderWorkbench();
-      announce(`Cadence complete. ${repetitionsThisRun} repetitions saved.`);
+      announce(`Timed repeats complete. ${repetitionsThisRun} repeats saved.`);
     });
   } else beginGap();
 });
@@ -811,6 +814,15 @@ async function init(): Promise<void> {
   updateNetworkStatus();
   if (demoMode) {
     document.title = 'Demo — Audio Gap Loop';
+    const description = 'Try a spoken French greeting with timed repeats.';
+    const updateMeta = (selector: string, content: string) => document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', content);
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', 'https://audio-gap-loop.sociobot.in/demo/');
+    updateMeta('meta[name="description"]', description);
+    updateMeta('meta[property="og:url"]', 'https://audio-gap-loop.sociobot.in/demo/');
+    updateMeta('meta[property="og:title"]', document.title);
+    updateMeta('meta[property="og:description"]', description);
+    updateMeta('meta[name="twitter:title"]', document.title);
+    updateMeta('meta[name="twitter:description"]', description);
     document.querySelector<HTMLElement>('#demo-banner')!.hidden = false;
     await seedDemo();
   } else renderStudio();

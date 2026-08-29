@@ -61,6 +61,10 @@ Generated with the factory Azure image deployment (`factory-image`) through `/op
 
 App icons are hand-authored SVG-derived raster assets: a black cassette window with two cream reels and an orange gap marker. They use only primitive geometry and belong to this repository under MIT.
 
+### Demo audio provenance
+
+The one-click demo uses `public/assets/french-bonjour-ccby25.oga`, a native-speaker recording of **“Bonjour”** by Arka Voltchek. It was downloaded from Wikimedia Commons on 2026-08-29 under [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/), is shipped with the app, and is credited in `.factory/demo.md`. The recording is deliberately a short, intelligible language phrase rather than a synthetic tone, so the listen–speaking-gap–repeat loop demonstrates the real task.
+
 ## Safety and content tone
 
 Copy is instructional, calm, and concrete. There are no scores, streaks, celebrations, badges, or urgency. The interface reminds listeners to begin below 60% volume and take breaks; it never increases device volume. “Done for now” records a practice session without judging performance.

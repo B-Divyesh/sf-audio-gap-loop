@@ -1,4 +1,4 @@
-const CACHE_NAME = 'audio-gap-loop-shell-v4';
+const CACHE_NAME = 'audio-gap-loop-shell-v5';
 const CORE = [
   '/',
   '/demo/',
@@ -10,6 +10,7 @@ const CORE = [
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
+  '/assets/french-bonjour-ccby25.oga',
   '/assets/patient-tape-deck-720.webp'
 ];
 
