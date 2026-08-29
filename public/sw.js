@@ -1,9 +1,10 @@
-const CACHE_NAME = 'audio-gap-loop-shell-v5';
+const CACHE_NAME = 'audio-gap-loop-shell-v6';
 const CORE = [
   '/',
   '/demo/',
   '/404.html',
   '/offline.html',
+  '/offline.css',
   '/privacy/',
   '/terms/',
   '/manifest.webmanifest',

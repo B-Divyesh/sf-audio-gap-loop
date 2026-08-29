@@ -1,14 +1,22 @@
 # Audio Gap Loop
 
-Practise a language clip in timed repeats. It is for learners, parents, and tutors who want a calm listen–speak–repeat routine.
+Practise an audio clip in timed repeats. Audio Gap Loop is for language learners, parents, and tutors using short audio.
 
-Try the spoken French sample at [audio-gap-loop.sociobot.in/demo/](https://audio-gap-loop.sociobot.in/demo/). Demo data is separate from your clips and is cleared when you start for real.
+Try the spoken French sample at [audio-gap-loop.sociobot.in/demo/](https://audio-gap-loop.sociobot.in/demo/). Demo data stays separate and is cleared when you start for real.
 
-## Use it
+## Practise with your own audio
 
-Import audio you have permission to use. Add transcript lines. Choose one line. Set a speaking gap and repeats. Start timed repeats.
+1. Import an audio clip you have permission to use.
+2. Add transcript lines.
+3. Choose one transcript line.
+4. Set the speaking gap and repeats.
+5. Start timed repeats.
 
-Your clips and practice data stay in this browser. Export a backup before clearing browser data. Export a CSV practice log when needed. The demo reloads offline after its first visit.
+Audio clips and practice history stay in this browser. Saved audio clips and the demo reload offline after their first visit.
+
+Export a backup before clearing browser data. You can also export a CSV practice log.
+
+The player does not score speech or provide lessons.
 
 ## Run and verify
 
@@ -22,6 +30,10 @@ npm run preview
 ```
 
 `npm run build` creates `dist/`. The claim list and browser proofs are in [.factory/claims.json](.factory/claims.json).
+
+## Deploy
+
+Deploy the contents of `dist/` as a static site. The deployment configuration ships in that directory.
 
 ## Routes
 

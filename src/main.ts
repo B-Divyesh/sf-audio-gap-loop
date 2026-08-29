@@ -162,7 +162,7 @@ function renderWorkbench(): void {
       <div class="empty-state">
         <div class="empty-cassette" aria-hidden="true"></div>
         <div>
-          <h3>No practice clips yet</h3>
+          <h3>No audio clips yet</h3>
           <p>Add an audio clip you have permission to use. It stays in this browser.</p>
         </div>
         <button class="button button-primary" type="button" data-action="open-import">Import audio file</button>
@@ -180,7 +180,7 @@ function renderWorkbench(): void {
   workbench.innerHTML = `
     <div class="workspace-grid">
       <section class="tape-library" aria-labelledby="clip-library-title">
-        <div class="library-head"><h3 id="clip-library-title">Audio clips</h3><span class="count-chip">${clips.length} ${clips.length === 1 ? 'clip' : 'clips'}</span></div>
+        <div class="library-head"><h3 id="clip-library-title">Audio clips</h3><span class="count-chip">${clips.length} ${clips.length === 1 ? 'audio clip' : 'audio clips'}</span></div>
         <ul class="clip-list">
           ${clips.map((clip) => {
             const reps = logs.filter((log) => log.clipId === clip.id).reduce((sum, log) => sum + log.repetitions, 0);
@@ -193,14 +193,14 @@ function renderWorkbench(): void {
       <div>
         ${playerMarkup(current, lines)}
         <div class="practice-summary" aria-label="Local practice summary">
-          <div class="metric"><strong>${clips.length}</strong><span>clips prepared</span></div>
+          <div class="metric"><strong>${clips.length}</strong><span>audio clips prepared</span></div>
           <div class="metric"><strong>${totals.repetitions}</strong><span>repeats logged</span></div>
           <div class="metric"><strong>${Math.round(totals.minutes)}</strong><span>minutes listened</span></div>
         </div>
         <section class="history" aria-labelledby="history-title">
           <h3 id="history-title">Recent practice</h3>
           ${logs.length ? `<ul class="history-list">${logs.slice(0, 6).map((log) => {
-            const title = clips.find((clip) => clip.id === log.clipId)?.title ?? 'Removed clip';
+            const title = clips.find((clip) => clip.id === log.clipId)?.title ?? 'Removed audio clip';
             return `<li><div><strong>${escapeHtml(title)}</strong><br><time datetime="${log.completedAt}">${new Date(log.completedAt).toLocaleString()}</time></div><span>${log.repetitions} ${log.repetitions === 1 ? 'repeat' : 'repeats'}</span></li>`;
           }).join('')}</ul>` : '<p class="transcript-empty">Completed practice will appear here—no score attached.</p>'}
         </section>
@@ -218,7 +218,7 @@ function playerMarkup(clip: Clip, lines: string[]): string {
   const activeLine = Math.min(clip.activeLine, Math.max(0, lines.length - 1));
   return `<section class="player-shell ${phase === 'playing' ? 'is-playing' : ''}" aria-label="Practice player for ${escapeHtml(clip.title)}">
     <div class="player-top">
-      <div><p class="eyebrow">Current clip</p><h3>${escapeHtml(clip.title)}</h3></div>
+      <div><p class="eyebrow">Current audio clip</p><h3>${escapeHtml(clip.title)}</h3></div>
       <div class="player-tools">
         <button class="icon-button" type="button" data-action="edit-clip">Edit</button>
         <button class="icon-button" type="button" data-action="delete-clip">Delete</button>
@@ -305,7 +305,7 @@ function renderStudio(): void {
     <div class="studio-grid">
       <div class="studio-copy">
         <h3>Studio extras are not available yet.</h3>
-        <p>Saved presets and a practice queue will appear here when they are ready.</p>
+        <p>Saved timing presets and an audio clip queue will appear here when they are ready.</p>
         ${licenseState.unlocked
     ? '<p><strong>Unlocked on this device.</strong></p>'
     : studioCheckoutEnabled
@@ -325,14 +325,14 @@ function renderStudio(): void {
     </div>
     <div class="studio-tools ${licenseState.unlocked ? '' : 'locked-tool'}" aria-label="Studio extras">
       <section class="studio-tool">
-        <h3>Cadence presets</h3>
-        ${licenseState.unlocked ? `<form class="preset-form" id="preset-form"><label for="preset-name">Save the current cadence</label><input id="preset-name" name="name" maxlength="40" placeholder="e.g. Slow warm-up" required ${current ? '' : 'disabled'} /><button class="button button-small button-dark" type="submit" ${current ? '' : 'disabled'}>Save</button></form>
-          ${presets.length ? `<ul class="preset-list">${presets.map((preset) => `<li><span><strong>${escapeHtml(preset.name)}</strong><br><small>${preset.cadence.gapSeconds}s gap · ${preset.cadence.repetitions}× · ${preset.cadence.speed}× speed</small></span><span><button class="button button-small button-outline" type="button" data-action="apply-preset" data-id="${preset.id}">Apply</button> <button class="button button-small button-danger" type="button" data-action="remove-preset" data-id="${preset.id}" aria-label="Remove ${escapeHtml(preset.name)}">×</button></span></li>`).join('')}</ul>` : '<p class="transcript-empty">No presets saved yet.</p>'}` : '<p>Available after the one-time unlock. Core cadence controls remain free.</p>'}
+        <h3>Timing presets</h3>
+        ${licenseState.unlocked ? `<form class="preset-form" id="preset-form"><label for="preset-name">Save the current timing</label><input id="preset-name" name="name" maxlength="40" placeholder="e.g. Slow warm-up" required ${current ? '' : 'disabled'} /><button class="button button-small button-dark" type="submit" ${current ? '' : 'disabled'}>Save</button></form>
+          ${presets.length ? `<ul class="preset-list">${presets.map((preset) => `<li><span><strong>${escapeHtml(preset.name)}</strong><br><small>${preset.cadence.gapSeconds}s gap · ${preset.cadence.repetitions}× · ${preset.cadence.speed}× speed</small></span><span><button class="button button-small button-outline" type="button" data-action="apply-preset" data-id="${preset.id}">Apply</button> <button class="button button-small button-danger" type="button" data-action="remove-preset" data-id="${preset.id}" aria-label="Remove ${escapeHtml(preset.name)}">×</button></span></li>`).join('')}</ul>` : '<p class="transcript-empty">No presets saved yet.</p>'}` : '<p>Available after the one-time unlock. Timing controls remain free.</p>'}
       </section>
       <section class="studio-tool">
-        <h3>Practice queue</h3>
+        <h3>Audio clip queue</h3>
         ${licenseState.unlocked ? `${current ? `<button class="button button-small button-outline" type="button" data-action="queue-current" ${queue.includes(current.id) ? 'disabled' : ''}>${queue.includes(current.id) ? 'Already queued' : `Queue “${escapeHtml(current.title)}”`}</button>` : ''}
-          ${queueClips.length ? `<ol class="queue-list">${queueClips.map((clip, index) => `<li><span>${index + 1}. ${escapeHtml(clip.title)}</span><span><button class="button button-small button-outline" type="button" data-action="practice-queued" data-id="${clip.id}">Open</button> <button class="button button-small button-danger" type="button" data-action="remove-queue" data-id="${clip.id}" aria-label="Remove ${escapeHtml(clip.title)} from queue">×</button></span></li>`).join('')}</ol>` : '<p class="transcript-empty">Queue clips in the order you want to practise.</p>'}` : '<p>Available after the one-time unlock. You can always open any clip directly.</p>'}
+          ${queueClips.length ? `<ol class="queue-list">${queueClips.map((clip, index) => `<li><span>${index + 1}. ${escapeHtml(clip.title)}</span><span><button class="button button-small button-outline" type="button" data-action="practice-queued" data-id="${clip.id}">Open</button> <button class="button button-small button-danger" type="button" data-action="remove-queue" data-id="${clip.id}" aria-label="Remove ${escapeHtml(clip.title)} from queue">×</button></span></li>`).join('')}</ol>` : '<p class="transcript-empty">Queue audio clips in the order you want to practise.</p>'}` : '<p>Available after the one-time unlock. You can always open any audio clip directly.</p>'}
       </section>
     </div>`;
 }
@@ -387,7 +387,7 @@ async function startCadence(): Promise<void> {
     clearGapTimer();
     phase = 'paused';
     updateTransportDisplay();
-    announce('Cadence paused.');
+    announce('Timed repeats paused.');
     return;
   }
   if (phase === 'idle' || phase === 'complete') {
@@ -459,8 +459,8 @@ function openImportDialog(file: File): void {
   rightsCheck.checked = false;
   rightsCheck.disabled = false;
   clipError.textContent = '';
-  document.querySelector('#clip-dialog-title')!.textContent = 'Add a practice clip';
-  clipForm.querySelector<HTMLButtonElement>('[type="submit"]')!.textContent = 'Save clip locally';
+  document.querySelector('#clip-dialog-title')!.textContent = 'Add an audio clip';
+  clipForm.querySelector<HTMLButtonElement>('[type="submit"]')!.textContent = 'Save audio clip';
   clipDialog.showModal();
   clipTitle.focus();
 }
@@ -475,7 +475,7 @@ function openEditDialog(clip: Clip): void {
   rightsCheck.checked = true;
   rightsCheck.disabled = true;
   clipError.textContent = '';
-  document.querySelector('#clip-dialog-title')!.textContent = 'Edit clip label';
+  document.querySelector('#clip-dialog-title')!.textContent = 'Edit audio clip';
   clipForm.querySelector<HTMLButtonElement>('[type="submit"]')!.textContent = 'Save changes';
   clipDialog.showModal();
   clipTitle.focus();
@@ -509,13 +509,13 @@ async function saveClipFromDialog(): Promise<void> {
   try {
     if (editingId) {
       const existing = clips.find((clip) => clip.id === editingId);
-      if (!existing) throw new Error('That clip could not be found.');
+      if (!existing) throw new Error('That audio clip could not be found.');
       const updated: Clip = { ...existing, title, transcript: clipTranscript.value.trim(), updatedAt: new Date().toISOString() };
       await putClip(updated);
       clips = clips.map((clip) => clip.id === updated.id ? updated : clip);
       clipDialog.close();
       renderWorkbench();
-      showToast('Clip details saved.');
+      showToast('Audio clip details saved.');
       return;
     }
     if (!pendingFile) throw new Error('Choose an audio file first.');
@@ -539,12 +539,12 @@ async function saveClipFromDialog(): Promise<void> {
     audioInput.value = '';
     pendingFile = null;
     await selectClip(clip.id);
-    showToast('Clip saved. It is ready offline.');
+    showToast('Audio clip saved. It is ready offline.');
   } catch (error) {
-    clipError.textContent = error instanceof Error ? error.message : 'The clip could not be saved.';
+    clipError.textContent = error instanceof Error ? error.message : 'The audio clip could not be saved.';
   } finally {
     saveButton.disabled = false;
-    saveButton.textContent = editingId ? 'Save changes' : 'Save clip locally';
+    saveButton.textContent = editingId ? 'Save changes' : 'Save audio clip';
   }
 }
 
@@ -559,7 +559,7 @@ async function updateCadence(key: string, rawValue: string): Promise<void> {
   audio.playbackRate = cadence.speed;
   if (phase === 'idle' || phase === 'complete') renderWorkbench();
   else updateTransportDisplay();
-  announce('Cadence settings saved.');
+  announce('Timing settings saved.');
 }
 
 async function chooseTranscriptLine(index: number): Promise<void> {
@@ -604,7 +604,7 @@ async function exportBackup(): Promise<void> {
 function exportCsv(): void {
   const titleById = new Map(clips.map((clip) => [clip.id, clip.title]));
   const rows = [['completed_at', 'clip', 'repetitions', 'seconds_listened'], ...logs.map((log) => [
-    log.completedAt, titleById.get(log.clipId) ?? 'Removed clip', log.repetitions, log.secondsListened
+    log.completedAt, titleById.get(log.clipId) ?? 'Removed audio clip', log.repetitions, log.secondsListened
   ])];
   const csv = rows.map((row) => row.map(csvCell).join(',')).join('\n');
   downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `audio-gap-loop-log-${new Date().toISOString().slice(0, 10)}.csv`);
@@ -616,7 +616,7 @@ async function importBackup(file: File): Promise<void> {
     const parsed = JSON.parse(await file.text()) as BackupFile;
     if (parsed.schema !== 1 || !Array.isArray(parsed.clips) || !Array.isArray(parsed.logs)) throw new Error('This is not an Audio Gap Loop backup.');
     const restoredClips: Clip[] = await Promise.all(parsed.clips.map(async ({ audioBase64, ...clip }) => {
-      if (typeof audioBase64 !== 'string' || !audioBase64.startsWith('data:audio/')) throw new Error(`Audio is missing for “${clip.title ?? 'untitled clip'}”.`);
+      if (typeof audioBase64 !== 'string' || !audioBase64.startsWith('data:audio/')) throw new Error(`Audio is missing for “${clip.title ?? 'untitled audio clip'}”.`);
       const response = await fetch(audioBase64);
       return { ...clip, audio: await response.blob(), cadence: normalizeCadence(clip.cadence) } as Clip;
     }));
@@ -632,7 +632,7 @@ async function importBackup(file: File): Promise<void> {
     writeLocal('agl_queue', JSON.stringify(queue));
     if (clips.length) await selectClip(selectedId && clips.some((clip) => clip.id === selectedId) ? selectedId : clips[0].id);
     else renderWorkbench();
-    showToast(`Imported ${restoredClips.length} clips and ${parsed.logs.length} practice entries.`);
+    showToast(`Imported ${restoredClips.length} audio clips and ${parsed.logs.length} practice entries.`);
   } catch (error) {
     showToast(error instanceof Error ? error.message : 'The backup could not be imported.', 7000);
   } finally {
@@ -658,7 +658,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
     case 'close-dialog': clipDialog.close(); break;
     case 'delete-clip': {
       const clip = selectedClip();
-      if (!clip || !confirm(`Delete “${clip.title}” and its local practice history? This cannot be undone.`)) break;
+      if (!clip || !confirm(`Delete the audio clip “${clip.title}” and its local practice history? This cannot be undone.`)) break;
       stopCadence();
       await deleteClipRecord(clip.id);
       clips = clips.filter((item) => item.id !== clip.id);
@@ -668,7 +668,7 @@ async function handleAction(target: HTMLElement): Promise<void> {
       selectedId = clips[0]?.id ?? null;
       if (selectedId) await loadClipAudio(clips[0]);
       renderWorkbench();
-      showToast('Clip and its practice history deleted.');
+      showToast('Audio clip and its practice history deleted.');
       break;
     }
     case 'select-line': await chooseTranscriptLine(Number(actionTarget.dataset.line)); break;
@@ -738,7 +738,7 @@ document.addEventListener('submit', (event) => {
     presets.push({ id: crypto.randomUUID(), name, cadence: { ...clip.cadence } });
     writeLocal('agl_presets', JSON.stringify(presets));
     renderStudio();
-    showToast('Cadence preset saved.');
+    showToast('Timing preset saved.');
   }
 });
 
@@ -746,13 +746,13 @@ audioInput.addEventListener('change', () => {
   const file = audioInput.files?.[0];
   if (!file) return;
   if (file.size > 100 * 1024 * 1024) {
-    showToast('That file is over 100 MB. Trim it into a shorter practice clip and try again.', 7000);
+    showToast('That file is too large. Trim it into a shorter audio clip and try again.', 7000);
     audioInput.value = '';
     return;
   }
   const likelyAudio = file.type.startsWith('audio/') || /\.(mp3|m4a|wav|ogg|opus|webm)$/i.test(file.name);
   if (!likelyAudio) {
-    showToast('Choose an MP3, M4A, WAV, OGG, Opus, or WebM audio file.', 7000);
+    showToast('This file is not recognised as audio. Choose an audio file and try again.', 7000);
     audioInput.value = '';
     return;
   }
@@ -781,7 +781,7 @@ audio.addEventListener('error', () => {
   if (!audio.src) return;
   phase = 'paused';
   updateTransportDisplay();
-  showToast('This clip could not be decoded. Try converting it to MP3 or WAV.');
+  showToast('This audio clip could not be decoded. Try converting it to MP3 or WAV.');
 });
 
 document.addEventListener('keydown', (event) => {
@@ -838,7 +838,7 @@ async function init(): Promise<void> {
     renderWorkbench();
   } catch {
     workbench.setAttribute('aria-busy', 'false');
-    workbench.innerHTML = '<div class="notice notice-error" role="alert"><strong>Local storage did not open.</strong><br>Check that private browsing or storage restrictions are not blocking this site, then reload.</div>';
+    workbench.innerHTML = '<div class="notice notice-error" role="alert"><strong>Browser storage did not open.</strong><br>Check your browser storage settings, then reload.</div>';
   }
   if (demoMode) { renderStudio(); void registerServiceWorker(); return; }
   const returnedFromCheckout = captureLicenseFromUrl();
