@@ -1,10 +1,15 @@
 # Polish 3 closure — Audio Gap Loop
 
-**Round:** 3  
-**Reviewed candidate:** `9966d5cb374f8f2b3403f525c5242abbc68cf87b`  
-**Review report commit:** `bbc0ef87f1bda819aff7307b764b68dca9d610bc`  
-**Final implementation:** `f690790`  
-**Live deployment:** `ddcb5798-c71c-4e18-9c48-661de58f16f9`  
+**Round:** 3
+
+**Reviewed candidate:** `9966d5cb374f8f2b3403f525c5242abbc68cf87b`
+
+**Review report commit:** `bbc0ef87f1bda819aff7307b764b68dca9d610bc`
+
+**Final implementation:** `f690790`
+
+**Live deployment:** `ddcb5798-c71c-4e18-9c48-661de58f16f9`
+
 **Live URL:** <https://audio-gap-loop.sociobot.in/>
 
 ## Finding closure map
