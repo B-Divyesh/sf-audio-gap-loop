@@ -1,31 +1,26 @@
-# Polish 2 handoff — Audio Gap Loop
+# Review 3 handoff — Audio Gap Loop
 
 ## Delivered
 
-- Fixed every current and reopened finding in `.factory/review-2.md` and carried forward every reviewed F-1 finding. See `.factory/polish-2.md` for the one-to-one closure map.
-- Real `/` no longer displays demo controls. `/demo/` and `?demo=1` run an isolated temporary workspace with Reset and Start for real cleanup.
-- Replaced the sine tone with a shipped CC-BY native-speaker French greeting, documented at `.factory/demo.md` and `.factory/design.md`.
-- Added seven observable claims with tagged Playwright proofs, complete route metadata/shells, Back focus restoration, consistent plain wording, compact first-screen layout, and full AxeBuilder scans.
+- Wrote `.factory/review-3.md` with a complete adversarial mobile/desktop first-read review, copy audit, demo and sandbox verification, claim-by-claim results, cumulative history recheck, structure/accessibility review, and FAIL verdict.
+- Added cold mobile, cold desktop, and populated demo screenshots under `.factory/evidence/`.
+- Did not modify product code.
 
-## Verify
+## Verification performed
 
-```sh
-npm ci
-npm test
-npm run build
-npm audit --audit-level=high
-```
+- Opened the live root in fresh Chromium contexts at 390×844 and 1440×900.
+- Exercised live demo entry, realistic sample state, Reset, Start for real cleanup, storage isolation, offline reload, request logging, route focus, Back focus, metadata, dead links, 404 behavior, and AxeBuilder on all routes.
+- Ran every `.factory/claims.json` command from clean clone `/tmp/audio-gap-loop-review3.w0tYNG/clean`.
+- Ran full `npm test`, `npm run build`, and `git diff --check` in that clone. Tests passed (8 unit, 10 browser); build produced `dist/`.
+- Ran `/opt/fleet/lib/verify-url.sh` against the live root; it passed with no console/page errors. Standalone axe CLI could not locate its own Chrome, while the equivalent pinned-Playwright AxeBuilder scans passed with zero violations.
 
-Each command in `.factory/claims.json` is also run individually. `npm test` passes 8 unit tests and 10 browser tests. `npm run build` produces `dist/`; final main JavaScript is 30.88 kB raw / 10.30 kB gzip and CSS is 17.69 kB raw / 4.67 kB gzip.
+## Findings left for the repairer
 
-Local verification used `/opt/fleet/lib/verify-url.sh` against the production build: HTTP 200, zero console errors, valid title/lang/main/alt/button basics. The route suite runs AxeBuilder and found zero violations. The standalone axe CLI could not launch its own Chrome in this container, so the preinstalled Playwright Chromium AxeBuilder check is the recorded accessibility evidence.
+The review is FAIL with four findings:
 
-## Deployment and live recheck
+1. Blocking: the main/demo header navigation is hidden on mobile while legal/404 headers show it, reopening F-1-7/F-2-4.
+2. Blocking: generic timed-repeat claims and parts of the privacy/deletion claims lack outcome-level proof, reopening F-1-5/F-2-3.
+3. Blocking: **language clip**, **audio clip**, and **practice clip** remain inconsistent, reopening F-1-10/F-2-6.
+4. Major: the landing page lacks the required privacy/limits section after How it works.
 
-Committed and pushed `a5b621ff3bd902780ddec2ae1698404e6a000462` (`fix: close cumulative polish findings`). Work-order deployment `8352cba7-1450-4ec8-b186-d4ca0735eee1` succeeded to `https://audio-gap-loop.sociobot.in/`.
-
-A cold Chromium recheck returned 200 for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404.html`; an unknown URL returned the designed HTTP 404. Root had no demo banner, demo showed the French greeting and its banner, root/demo/privacy/terms/404 all had one h1 and zero AxeBuilder violations, and no console errors occurred on the successful routes. At 390×844 there was zero horizontal overflow and the action note plus three facts all fit. Browser Back from Privacy focused the root h1. Live reset restored 7 seconds to 3 seconds; Start for real removed demo keys/database and preserved a real-data marker. `/opt/fleet/lib/verify-url.sh` passed on the public root.
-
-## Known gaps
-
-None in the shipped local artifact. The only test-tool limitation is the standalone axe CLI Chrome-launch failure described above; equivalent Playwright AxeBuilder coverage passes.
+Use the exact rewrites and test requirements in `.factory/review-3.md`. Re-run the entire review after repair; do not treat the previous polish closure maps as proof.
