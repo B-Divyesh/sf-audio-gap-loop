@@ -2,9 +2,11 @@
 
 **Verdict: FAIL**
 
-**Reviewed:** 2026-08-29 UTC  
-**Target:** <https://audio-gap-loop.sociobot.in/>  
-**Candidate:** `9966d5cb374f8f2b3403f525c5242abbc68cf87b`  
+**Reviewed:** 2026-08-29 UTC
+
+**Target:** <https://audio-gap-loop.sociobot.in/>
+
+**Candidate:** `9966d5cb374f8f2b3403f525c5242abbc68cf87b`
 **Method:** fresh Chromium contexts at 390×844 and 1440×900, live demo/storage/network/offline tests, route and link crawl, metadata and AxeBuilder scans, source/history review, and every claim command from a separate clean clone. No product code was changed.
 
 ## First 30 seconds
