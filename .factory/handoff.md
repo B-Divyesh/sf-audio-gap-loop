@@ -22,7 +22,9 @@ Local verification used `/opt/fleet/lib/verify-url.sh` against the production bu
 
 ## Deployment and live recheck
 
-Commit, work-order deployment identifier, and cold live results are recorded after deployment in this handoff and `.factory/polish-2.md`.
+Committed and pushed `a5b621ff3bd902780ddec2ae1698404e6a000462` (`fix: close cumulative polish findings`). Work-order deployment `8352cba7-1450-4ec8-b186-d4ca0735eee1` succeeded to `https://audio-gap-loop.sociobot.in/`.
+
+A cold Chromium recheck returned 200 for `/`, `/demo/`, `/privacy/`, `/terms/`, and `/404.html`; an unknown URL returned the designed HTTP 404. Root had no demo banner, demo showed the French greeting and its banner, root/demo/privacy/terms/404 all had one h1 and zero AxeBuilder violations, and no console errors occurred on the successful routes. At 390×844 there was zero horizontal overflow and the action note plus three facts all fit. Browser Back from Privacy focused the root h1. Live reset restored 7 seconds to 3 seconds; Start for real removed demo keys/database and preserved a real-data marker. `/opt/fleet/lib/verify-url.sh` passed on the public root.
 
 ## Known gaps
 
