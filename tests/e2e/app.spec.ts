@@ -280,3 +280,11 @@ test('keyboard controls start, pause, and restart timed repeats', async ({ page 
   await page.keyboard.press('r');
   await expect(page.locator('#phase-label')).toHaveText('Listen');
 });
+
+test('text resized to 200% stays inside the mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await expect(page.getByRole('link', { name: 'Try sample practice' })).toBeVisible();
+});
