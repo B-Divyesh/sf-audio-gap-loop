@@ -5,7 +5,7 @@
 **PASS.** The malformed-backup recovery finding from review 5 is fixed. There are no known product defects or untested public claims.
 
 - Implementation SHA: `6ef6790f9b52178cdec1d8b433bd4586e2ea4f61`
-- Documentation baseline SHA: `ff6f6e256862652e18a09d4c1a754d6480c02fc4`
+- Documentation verification SHA: `a70b909821755a2808d712e0f8f8d63d58025fb5`
 - Scope: static, local-first PWA; no backend checks apply.
 
 ## What changed
