@@ -626,7 +626,7 @@ function exportCsv(): void {
 async function importBackup(file: File): Promise<void> {
   try {
     const parsed = JSON.parse(await file.text()) as BackupFile;
-    if (parsed.schema !== 1 || !Array.isArray(parsed.clips) || !Array.isArray(parsed.logs)) throw new Error('This is not an Audio Gap Loop backup.');
+    if (parsed.schema !== 1 || !Array.isArray(parsed.clips) || !Array.isArray(parsed.logs)) throw new Error('Invalid backup format.');
     const restoredClips: Clip[] = parsed.clips.map(({ audioBase64, ...clip }) => ({
       ...clip,
       audio: dataUrlToAudioBlob(audioBase64, clip.title),
@@ -645,8 +645,8 @@ async function importBackup(file: File): Promise<void> {
     if (clips.length) await selectClip(selectedId && clips.some((clip) => clip.id === selectedId) ? selectedId : clips[0].id);
     else renderWorkbench();
     showToast(`Imported ${restoredClips.length} audio clips and ${parsed.logs.length} practice entries.`);
-  } catch (error) {
-    showToast(error instanceof Error ? error.message : 'The backup could not be imported.', 7000);
+  } catch {
+    showToast('This backup could not be read. Choose an Audio Gap Loop backup and try again.', 7000);
   } finally {
     backupInput.value = '';
   }

@@ -149,6 +149,22 @@ test('@claim:backup-export-import downloads a full backup and restores it in a f
   expect(requests.every(url => ['blob:', origin].some(allowed => url.startsWith(allowed)))).toBe(true);
 });
 
+test('invalid backup files explain how to recover without exposing parser errors', async ({ page }) => {
+  await page.goto('/');
+  const recovery = 'This backup could not be read. Choose an Audio Gap Loop backup and try again.';
+
+  for (const file of [
+    { name: 'broken-backup.json', buffer: Buffer.from('{broken') },
+    { name: 'wrong-format.json', buffer: Buffer.from(JSON.stringify({ schema: 99, clips: [], logs: [] })) }
+  ]) {
+    await page.locator('#backup-file').setInputFiles({ name: file.name, mimeType: 'application/json', buffer: file.buffer });
+    await expect(page.locator('#toast')).toContainText(recovery);
+    await expect(page.locator('#toast')).not.toContainText(/expected property|unexpected token|position \d/i);
+  }
+
+  await expect(page.getByRole('button', { name: 'Import backup' })).toBeEnabled();
+});
+
 test('@claim:local-only-storage keeps imported audio and practice history in this browser without third-party requests', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
