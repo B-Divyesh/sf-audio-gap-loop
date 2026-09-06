@@ -1,66 +1,24 @@
-# Repair 3 handoff — Practise audio clips in timed repeats
+# Verification 5 handoff — Practise audio clips in timed repeats
 
 ## Result
 
-**PASS.** The malformed-backup recovery finding from review 5 is fixed. There are no known product defects or untested public claims.
+**PASS.** Independent QA found zero findings and zero untested claims. Product code was not changed.
 
 - Implementation SHA: `6ef6790f9b52178cdec1d8b433bd4586e2ea4f61`
-- Documentation verification SHA: `a70b909821755a2808d712e0f8f8d63d58025fb5`
-- Scope: static, local-first PWA; no backend checks apply.
+- Documentation baseline: `19c15553c43a34320f5cb46de63bf006502bd850`
+- Live URL: <https://audio-gap-loop.sociobot.in/>
+- Full report: [verification-5.md](verification-5.md)
 
-## What changed
+## Verified
 
-- Backup import now gives one plain recovery message for malformed JSON, wrong backup shape, and damaged backup content: “This backup could not be read. Choose an Audio Gap Loop backup and try again.” It no longer exposes browser parser text.
-- Added an outcome-level browser regression that uploads both malformed JSON and a wrong-schema JSON file through the real file input, checks the recovery guidance, checks that parser wording is absent, and confirms importing remains available.
-
-## Current product check
-
-Fresh phone (390×844) and desktop (1440×900) browser contexts both showed the first screen before scrolling:
-
-- Job: practise an audio clip in timed repeats.
-- Audience: language learners, parents, and tutors using short audio.
-- First action: **Try sample practice**; it opens a spoken French greeting with a three-second speaking gap.
-
-On both devices, all three first-screen facts fit without horizontal overflow. The one-click sample opened the populated French greeting with **Bonjour.**, a three-second gap, three repeats, and a three-repeat practice entry. Its persistent banner remained visible. Reset restored a changed seven-second gap to three seconds. Leaving demo removed the `demo:` keys and `demo:audio-gap-loop` database while preserving a real-data marker.
-
-## Verification
-
-Clean checkout: `/tmp/audio-gap-loop-repair3.dlp0zC` at the implementation SHA.
-
-```sh
-npm ci
-npm test
-npm run build
-npm audit --audit-level=high
-```
-
-- `npm ci`: passed; 0 vulnerabilities.
-- `npm test`: passed — 13 unit/contract tests and 17 Playwright browser tests.
-- `npm run build`: passed; `dist/` produced.
-- `npm audit --audit-level=high`: passed; 0 vulnerabilities.
-- Every exact command in `.factory/claims.json` passed independently from the clean checkout: `sample-spoken-loop`, `real-timed-repeats`, `demo-isolation`, `offline-reload`, `csv-export`, `backup-export-import`, `local-only-storage`, `delete-local-clip`, `product-boundaries`, `artwork-provenance`, and `static-build`.
-
-The isolated malformed-backup regression passed locally. A full live-suite run briefly had a non-reproducible artwork-provenance failure; its isolated rerun and the following complete live rerun both passed.
-
-## Deployment and live verification
-
-Deployed the fresh `dist/` with the product-scoped static deployment wrapper. It reused the existing `sf-audio-gap-loop` static app, retained the ready custom domain, and returned HTTPS 200. The live root serves the implementation bundle `main-x_O7-drX.js`.
-
-- `PLAYWRIGHT_BASE_URL=https://audio-gap-loop.sociobot.in npx playwright test`: passed — 17/17.
-- `/opt/fleet/lib/verify-url.sh https://audio-gap-loop.sociobot.in <existing-temp-dir>`: passed — HTTP 200, title, `lang=en`, one h1, main landmark, complete image alternatives and button names, zero console/page errors.
-- Live AxeBuilder scans in the browser suite: zero violations on root, demo, privacy, terms, and 404.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1,356 ms, CLS 0, TBT 0 ms, 122,233 bytes transferred.
-- Live artifact parity: all 26 public build files match the implementation build byte-for-byte.
-- The deliberate missing route returns HTTP 404 with the designed “This page is not here.” recovery page. This is expected.
-- Live headers retain CSP, anti-framing, permissions policy, `nosniff`, strict-origin referrer policy, immutable hashed assets, and a no-cache service worker.
-
-## Earlier findings
-
-All review-1 through review-5 findings remain closed. The review-5-only item, F-5-1, is now closed by the plain invalid-backup recovery path and its browser regression. The free core remains available; checkout and paid Studio UI are deliberately absent until the separate factory billing registration is enabled.
-
-## Remaining dependency
-
-No product defect remains. Sociobot billing registration is still an external prerequisite before any paid Studio offer, checkout, entitlement, or restore flow can be shown. No price or paid call to action is currently advertised.
+- Fresh 390 × 844 phone and 1440 × 900 desktop first screens state the job, audience, first action, result, and three facts before scrolling.
+- The one-click spoken sample opens populated. Reset, exit cleanup, and preservation of real data pass.
+- Malformed and wrong-schema backups show plain retry guidance without parser text.
+- Clean candidate: `npm ci`, 13 unit/contract tests, 17 browser tests, production build, audit, and all 11 exact claim commands pass.
+- Live: 17/17 browser tests, zero AxeBuilder violations, verifier pass, offline/update pass, route and 404 pass, no unexpected console errors, and no third-party practice requests.
+- All 26 public artifacts match the candidate build byte for byte. Live bundle: `main-x_O7-drX.js`.
+- Lighthouse mobile: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.40 s, CLS 0, TBT 0 ms.
+- Every earlier review and verification finding, including F-5-1 and minor items, is closed or safely absent.
 
 ## Re-run
 
@@ -68,6 +26,13 @@ No product defect remains. Sociobot billing registration is still an external pr
 npm ci
 npm test
 npm run build
+npm audit --audit-level=high
 PLAYWRIGHT_BASE_URL=https://audio-gap-loop.sociobot.in npx playwright test
 /opt/fleet/lib/verify-url.sh https://audio-gap-loop.sociobot.in "$(mktemp -d)"
 ```
+
+Run every exact `test` command in `.factory/claims.json` independently for a claims audit.
+
+## Remaining dependency
+
+Sociobot billing registration remains external. No paid offer or broken checkout path is currently shown. Review checkout, return, restore, verification, and revocation before enabling any paid offer.
